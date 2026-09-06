@@ -1,0 +1,81 @@
+table,column,data_type,description,example
+users,user_id,VARCHAR,"Unique user identifier: C-### for coordinators A-### for admins",C-001
+users,name,VARCHAR,"Full name with title if applicable",Maria Santos
+users,role,ENUM,"User role in system: coordinator or admin",coordinator
+users,admin_type,ENUM,"Admin specialization: municipal or center (null for coordinators)",municipal
+users,municipality,VARCHAR,"Assigned municipality or Asin Center",Bolinao
+users,email,VARCHAR,"Official government email",m.santos@bolinao.gov.ph
+users,contact,VARCHAR,"Mobile contact number",(0946) 808-2167
+users,title,VARCHAR,"Professional title (null for coordinators)",Dr.
+submissions,submission_id,VARCHAR,"Auto-incremented submission reference S-YYYY-NNNN",S-2025-0142
+submissions,coordinator_id,FK→users.user_id,"Submitting coordinator",C-001
+submissions,coordinator_name,VARCHAR,"Full name of submitting coordinator",Maria Santos
+submissions,municipality,VARCHAR,"Municipality of the farm",Bolinao
+submissions,period,VARCHAR,"Reporting period month and year",May 2025
+submissions,report_type,ENUM,"Type of report: Production Producers or Income",Production
+submissions,status,ENUM,"Validation status: Approved Pending or Rejected",Approved
+submissions,submission_date,VARCHAR,"Date the submission was filed",Jun 3
+submissions,month,VARCHAR,"Month of the reporting period",May
+submissions,year,INTEGER,"Year of the reporting period",2025
+submissions,volume_mt,DECIMAL,"Salt produced in metric tons (Production reports only)",198
+submissions,farm_size_ha,DECIMAL,"Farm area in hectares (Producers reports only)",3.2
+submissions,salt_beds,INTEGER,"Number of salt beds (Producers reports only)",14
+submissions,production_method,ENUM,"Method used: Solar Evaporation Cooking or Hybrid (Producers reports only)",Solar Evaporation
+submissions,owner,VARCHAR,"Farm owner name (Producers reports only)",Juan Santos
+submissions,farm_manager,VARCHAR,"Farm manager name (Producers reports only)",Maria Santos
+submissions,manager_contact,VARCHAR,"Farm manager contact (Producers reports only)",(0946) 808-2167
+submissions,new_worker_count,INTEGER,"Number of new workers added (Producers reports only)",2
+submissions,amount_sold_mt,DECIMAL,"Volume sold in metric tons (Income reports only)",185
+submissions,market_rate_php,DECIMAL,"Market rate per ton in PHP (Income reports only)",1070
+submissions,total_revenue_php,DECIMAL,"Total revenue in PHP (Income reports only)",179760
+submissions,buyer,VARCHAR,"Buyer name or organization (Income reports only)",Metro Salt Distributors Inc.
+submissions,notes,VARCHAR,"Additional remarks or observations",Favorable weather throughout May.
+prescriptions,prescription_id,VARCHAR,"Unique prescription ID P-NNN",P-001
+prescriptions,from_user_id,FK→users.user_id,"Issuing admin user ID",A-001
+prescriptions,from_name,VARCHAR,"Full name of issuing admin",Dr. Ricardo Santos
+prescriptions,to_user_id,FK→users.user_id,"Recipient user ID: coordinator or admin",C-001
+prescriptions,to_name,VARCHAR,"Full name of recipient",Maria Santos
+prescriptions,to_type,ENUM,"Recipient role type: coordinator or admin",coordinator
+prescriptions,municipality,VARCHAR,"Municipality context of the prescription",Bolinao
+prescriptions,prescription_text,VARCHAR,"Full text of the prescription or directive",Recommended switching to covered salt beds during rainy season.
+prescriptions,date_issued,VARCHAR,"Date the prescription was issued",Jun 3 2025
+prescriptions,related_submission_id,FK→submissions.submission_id,"Optional linked submission ID (null if not linked)",S-2025-0140
+municipal_production_5y,fiscal_year,VARCHAR,"Fiscal year format YYYY-YY",2024-25
+municipal_production_5y,municipality,VARCHAR,"Municipality name",Bolinao
+municipal_production_5y,jul,INTEGER,"July production in MT",21
+municipal_production_5y,aug,INTEGER,"August production in MT",24
+municipal_production_5y,sep,INTEGER,"September production in MT",27
+municipal_production_5y,oct,INTEGER,"October production in MT",33
+municipal_production_5y,nov,INTEGER,"November production in MT",30
+municipal_production_5y,dec,INTEGER,"December production in MT",27
+municipal_production_5y,jan,INTEGER,"January production in MT",22
+municipal_production_5y,feb,INTEGER,"February production in MT",25
+municipal_production_5y,mar,INTEGER,"March production in MT",28
+municipal_production_5y,apr,INTEGER,"April production in MT",30
+municipal_production_5y,may,INTEGER,"May production in MT",32
+municipal_production_5y,jun,INTEGER,"June production in MT",26
+municipal_production_5y,annual_total_mt,INTEGER,"Total annual production in MT",396
+farm_monthly_production,coordinator_id,FK→users.user_id,"Coordinator identifier",C-001
+farm_monthly_production,coordinator_name,VARCHAR,"Full name of coordinator",Maria Santos
+farm_monthly_production,municipality,VARCHAR,"Municipality of the farm",Bolinao
+farm_monthly_production,fiscal_year,VARCHAR,"Fiscal year",2024-25
+farm_monthly_production,jul,INTEGER,"July relative production index",29
+farm_monthly_production,aug,INTEGER,"August relative production index",33
+farm_monthly_production,sep,INTEGER,"September relative production index",36
+farm_monthly_production,oct,INTEGER,"October relative production index",41
+farm_monthly_production,nov,INTEGER,"November relative production index",37
+farm_monthly_production,dec,INTEGER,"December relative production index",34
+farm_monthly_production,jan,INTEGER,"January relative production index",28
+farm_monthly_production,feb,INTEGER,"February relative production index",31
+farm_monthly_production,mar,INTEGER,"March relative production index",35
+farm_monthly_production,apr,INTEGER,"April relative production index",38
+farm_monthly_production,may,INTEGER,"May relative production index",40
+farm_monthly_production,jun,INTEGER,"June relative production index",33
+farm_monthly_production,annual_total,INTEGER,"Sum of 12-month index values",415
+production_methods,coordinator_id,FK→users.user_id,"Coordinator identifier",C-001
+production_methods,coordinator_name,VARCHAR,"Full name of coordinator",Maria Santos
+production_methods,municipality,VARCHAR,"Municipality of the farm",Bolinao
+production_methods,fiscal_year,VARCHAR,"Fiscal year",2024-25
+production_methods,sun_pct,INTEGER,"Percentage of output from solar/sun evaporation method",65
+production_methods,cooked_pct,INTEGER,"Percentage of output from cooking/boiling method",7
+production_methods,hybrid_pct,INTEGER,"Percentage of output from hybrid method",28

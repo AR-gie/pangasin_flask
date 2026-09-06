@@ -1,0 +1,11 @@
+{
+  "title": "PangAsinE1",
+  "description": "Streamline project management with this intuitive web application designed for teams, enhancing collaboration and productivity through organized task tracking.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

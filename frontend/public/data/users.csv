@@ -1,0 +1,35 @@
+user_id,name,role,admin_type,municipality,email,contact,title
+C-001,Maria Santos,coordinator,,Bolinao,m.santos@bolinao.gov.ph,(0946) 808-2167,
+C-002,Carlos Reyes,coordinator,,Bolinao,c.reyes@bolinao.gov.ph,(0946) 812-3344,
+C-003,Elena Navarro,coordinator,,Bolinao,e.navarro@bolinao.gov.ph,(0946) 834-5566,
+C-004,Jose Dela Cruz,coordinator,,Lingayen,j.delacruz@lingayen.gov.ph,(0915) 234-5678,
+C-005,Patricia Mendoza,coordinator,,Lingayen,p.mendoza@lingayen.gov.ph,(0915) 245-6789,
+C-006,Lina Aquino,coordinator,,Bani,l.aquino@bani.gov.ph,(0906) 789-0123,
+C-007,Ramon Florendo,coordinator,,Bani,r.florendo@bani.gov.ph,(0906) 790-1234,
+C-008,Pedro Lim,coordinator,,Alaminos,p.lim@alaminos.gov.ph,(0917) 456-7890,
+C-009,Sofia Torres,coordinator,,Alaminos,s.torres@alaminos.gov.ph,(0917) 467-8901,
+C-010,Ana Cruz,coordinator,,Dasol,a.cruz@dasol.gov.ph,(0928) 345-6789,
+C-011,Miguel Bautista,coordinator,,Dasol,m.bautista@dasol.gov.ph,(0928) 356-7890,
+C-012,Rosa Garcia,coordinator,,Infanta,r.garcia@infanta.gov.ph,(0932) 567-8901,
+C-013,Benjamin Santos,coordinator,,Infanta,b.santos@infanta.gov.ph,(0932) 578-9012,
+C-014,Tomas Bautista,coordinator,,San Fabian,t.bautista@sanfabian.gov.ph,(0951) 678-9012,
+C-015,Imelda Flores,coordinator,,San Fabian,i.flores@sanfabian.gov.ph,(0951) 689-0123,
+A-001,Dr. Ricardo Santos,admin,municipal,Bolinao,r.santos.admin@bolinao.gov.ph,(0946) 900-1111,Dr.
+A-002,Engr. Maria Fernandez,admin,municipal,Bolinao,m.fernandez@bolinao.gov.ph,(0946) 900-2222,Engr.
+A-003,Atty. Juanita Reyes,admin,municipal,Lingayen,j.reyes.admin@lingayen.gov.ph,(0915) 900-3333,Atty.
+A-004,Engr. Felix Dimayuga,admin,municipal,Lingayen,f.dimayuga@lingayen.gov.ph,(0915) 900-4444,Engr.
+A-005,Dra. Gloria Pascual,admin,municipal,Bani,g.pascual@bani.gov.ph,(0906) 900-5555,Dra.
+A-006,Engr. Leo Santos,admin,municipal,Bani,l.santos@bani.gov.ph,(0906) 900-6666,Engr.
+A-007,Engr. Roberto Cruz,admin,municipal,Alaminos,r.cruz@alaminos.gov.ph,(0917) 900-7777,Engr.
+A-008,Ms. Carmen Villanueva,admin,municipal,Alaminos,c.villanueva@alaminos.gov.ph,(0917) 900-8888,Ms.
+A-009,Dr. Andrea Salazar,admin,municipal,Dasol,a.salazar@dasol.gov.ph,(0928) 900-9999,Dr.
+A-010,Engr. Manuel Torres,admin,municipal,Dasol,m.torres@dasol.gov.ph,(0928) 901-0000,Engr.
+A-011,Dra. Carmen Reyes,admin,municipal,Infanta,c.reyes@infanta.gov.ph,(0932) 901-1111,Dra.
+A-012,Engr. Victor Santos,admin,municipal,Infanta,v.santos@infanta.gov.ph,(0932) 901-2222,Engr.
+A-013,Engr. Arturo Bautista,admin,municipal,San Fabian,a.bautista@sanfabian.gov.ph,(0951) 901-3333,Engr.
+A-014,Ms. Rosario Garcia,admin,municipal,San Fabian,r.garcia.admin@sanfabian.gov.ph,(0951) 901-4444,Ms.
+A-015,Dir. Ramon dela Cruz,admin,center,Asin Center,director@asincenter.psu.edu.ph,(0946) 808-2167,Dir.
+A-016,Asst. Dir. Maribel Santos,admin,center,Asin Center,asst.dir@asincenter.psu.edu.ph,(0946) 808-2168,Asst. Dir.
+A-017,Dr. Albert Lim,admin,center,Asin Center,a.lim@asincenter.psu.edu.ph,(0946) 808-2169,Dr.
+A-018,Engr. Patricia Torres,admin,center,Asin Center,p.torres@asincenter.psu.edu.ph,(0946) 808-2170,Engr.
+A-019,Ms. Gina Aquino,admin,center,Asin Center,g.aquino@asincenter.psu.edu.ph,(0946) 808-2171,Ms.

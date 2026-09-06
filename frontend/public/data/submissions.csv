@@ -1,0 +1,57 @@
+submission_id,coordinator_id,coordinator_name,municipality,period,report_type,status,submission_date,month,year,volume_mt,farm_size_ha,salt_beds,production_method,owner,farm_manager,manager_contact,new_worker_count,amount_sold_mt,market_rate_php,total_revenue_php,buyer,notes
+S-2025-0142,C-001,Maria Santos,Bolinao,May 2025,Production,Approved,Jun 3,May,2025,198,,,,,,,,,,,,Favorable weather throughout May. Solar evaporation yield exceeded estimate.
+S-2025-0141,C-001,Maria Santos,Bolinao,May 2025,Producers,Pending,Jun 4,May,2025,,3.2,14,Solar Evaporation,Juan Santos,Maria Santos,(0946) 808-2167,2,,,,,Two new seasonal workers onboarded for peak dry season.
+S-2025-0139,C-001,Maria Santos,Bolinao,Apr 2025,Income,Rejected,May 6,Apr,2025,,,,,,,,,185,1500,277500,National Salt Traders Corp.,Sold at slightly above market due to direct buyer arrangement.
+S-2025-0138,C-002,Carlos Reyes,Bolinao,Apr 2025,Production,Approved,May 5,Apr,2025,175,,,,,,,,,,,,April output consistent with Q2 projections.
+S-2025-0136,C-003,Elena Navarro,Bolinao,Mar 2025,Producers,Approved,Apr 4,Mar,2025,,2.8,12,Solar Evaporation,Roberto Navarro,Elena Navarro,(0946) 834-5566,0,,,,,Worker count stable. No new additions this period.
+S-2025-0140,C-004,Jose Dela Cruz,Lingayen,May 2025,Production,Approved,Jun 2,May,2025,174,,,,,,,,,,,,Smooth production run. No equipment downtime recorded.
+S-2025-0137,C-004,Jose Dela Cruz,Lingayen,Apr 2025,Income,Approved,May 4,Apr,2025,,,,,,,,,160,1070,171200,Metro Salt Distributors Inc.,Direct buyer contract renewed for Q3.
+S-2025-0135,C-005,Patricia Mendoza,Lingayen,Apr 2025,Production,Pending,May 3,Apr,2025,143,,,,,,,,,,,,Partial equipment maintenance caused slight delay mid-April.
+S-2025-0133,C-006,Lina Aquino,Bani,Apr 2025,Production,Pending,Jun 4,Apr,2025,98,,,,,,,,,,,,Lower yield due to early onset of rainy season conditions.
+S-2025-0132,C-006,Lina Aquino,Bani,Mar 2025,Producers,Approved,Apr 5,Mar,2025,,1.5,8,Solar Evaporation,Lina Aquino,Lina Aquino,(0906) 789-0123,1,,,,,Small-scale farm expansion underway.
+S-2025-0131,C-007,Ramon Florendo,Bani,Apr 2025,Production,Approved,May 2,Apr,2025,112,,,,,,,,,,,,Production stable despite adverse wind conditions mid-month.
+S-2025-0130,C-008,Pedro Lim,Alaminos,Apr 2025,Production,Approved,May 3,Apr,2025,156,,,,,,,,,,,,Consistent output. Salt beds fully operational.
+S-2025-0129,C-009,Sofia Torres,Alaminos,Mar 2025,Income,Approved,Apr 2,Mar,2025,,,,,,,,,140,1070,149800,Pangasinan Salt Cooperative,Cooperative pricing arranged for bulk purchase.
+S-2025-0128,C-010,Ana Cruz,Dasol,Apr 2025,Production,Approved,May 3,Apr,2025,163,,,,,,,,,,,,High yield month. New salt bed section fully productive.
+S-2025-0126,C-010,Ana Cruz,Dasol,Mar 2025,Income,Approved,Apr 1,Mar,2025,,,,,,,,,155,1070,165850,Dasol Salt Buyers Association,Local buyer association contract. Volume sold exceeded target by 3 MT.
+S-2025-0125,C-011,Miguel Bautista,Dasol,Apr 2025,Producers,Pending,May 4,Apr,2025,,2.6,11,Solar Evaporation,Miguel Bautista,Miguel Bautista,(0928) 356-7890,1,,,,,Farm layout reconfiguration completed. New drainage channel installed.
+S-2025-0123,C-012,Rosa Garcia,Infanta,Apr 2025,Income,Approved,May 4,Apr,2025,,,,,,,,,168,1070,179760,Metro Salt Distributors Inc.,Strong month. Exceeded April income target.
+S-2025-0122,C-012,Rosa Garcia,Infanta,Mar 2025,Production,Approved,Apr 2,Mar,2025,155,,,,,,,,,,,,Good March output despite brief equipment issue on March 14-15.
+S-2025-0121,C-013,Benjamin Santos,Infanta,Apr 2025,Production,Pending,May 5,Apr,2025,132,,,,,,,,,,,,April output slightly lower due to maintenance work on salt beds 7-9.
+S-2025-0119,C-014,Tomas Bautista,San Fabian,Mar 2025,Production,Approved,Apr 3,Mar,2025,141,,,,,,,,,,,,Steady March output. Weather favorable throughout the period.
+S-2025-0118,C-014,Tomas Bautista,San Fabian,Feb 2025,Producers,Approved,Mar 3,Feb,2025,,2.1,9,Solar Evaporation,Tomas Bautista,Tomas Bautista,(0951) 678-9012,0,,,,,No new workers. Existing team sufficient for current farm size.
+S-2025-0117,C-015,Imelda Flores,San Fabian,Apr 2025,Production,Pending,May 2,Apr,2025,89,,,,,,,,,,,,New coordinator first month of full operations.
+S-2024-0098,C-001,Maria Santos,Bolinao,Nov 2024,Production,Approved,Dec 3 2024,Nov,2024,185,,,Solar Evaporation,,,,,,,,,Strong dry-season output. Hybrid test beds yielded 15% more.
+S-2024-0091,C-002,Carlos Reyes,Bolinao,Oct 2024,Production,Approved,Nov 2 2024,Oct,2024,172,,,Hybrid,,,,,,,,,Introduced hybrid method on 4 beds. Promising results.
+S-2024-0085,C-003,Elena Navarro,Bolinao,Sep 2024,Producers,Approved,Oct 4 2024,Sep,2024,,2.8,12,Solar Evaporation,Roberto Navarro,Elena Navarro,(0946) 834-5566,1,,,,,One new worker added ahead of the peak October season.
+S-2024-0079,C-004,Jose Dela Cruz,Lingayen,Oct 2024,Production,Approved,Nov 1 2024,Oct,2024,168,,,Solar Evaporation,,,,,,,,,Consistent output. No disruptions recorded.
+S-2024-0073,C-005,Patricia Mendoza,Lingayen,Nov 2024,Income,Approved,Dec 2 2024,Nov,2024,,,,,,,,,148,1070,158360,Metro Salt Distributors Inc.,November income above seasonal average.
+S-2024-0067,C-006,Lina Aquino,Bani,Oct 2024,Production,Approved,Nov 3 2024,Oct,2024,104,,,Cooking,,,,,,,,,Switched 3 beds to cooking method due to cloudy weather.
+S-2024-0061,C-007,Ramon Florendo,Bani,Nov 2024,Production,Approved,Dec 1 2024,Nov,2024,118,,,Hybrid,,,,,,,,,Hybrid method trial extended to 5 beds. Overall yield improved by 8%.
+S-2024-0055,C-008,Pedro Lim,Alaminos,Oct 2024,Production,Approved,Nov 4 2024,Oct,2024,152,,,Solar Evaporation,,,,,,,,,October was the highest output month of 2024.
+S-2024-0049,C-009,Sofia Torres,Alaminos,Sep 2024,Producers,Approved,Oct 3 2024,Sep,2024,,2.0,9,Solar Evaporation,Sofia Torres,Sofia Torres,(0917) 467-8901,0,,,,,No change in workforce. Operations stable.
+S-2024-0043,C-010,Ana Cruz,Dasol,Oct 2024,Production,Approved,Nov 2 2024,Oct,2024,178,,,Hybrid,,,,,,,,,Hybrid method fully integrated on east section. 12% yield improvement over 2023.
+S-2024-0037,C-011,Miguel Bautista,Dasol,Nov 2024,Income,Approved,Dec 3 2024,Nov,2024,,,,,,,,,161,1070,172270,Dasol Salt Buyers Association,November income up 6% year-over-year.
+S-2024-0031,C-012,Rosa Garcia,Infanta,Oct 2024,Production,Approved,Nov 1 2024,Oct,2024,162,,,Solar Evaporation,,,,,,,,,Peak month. All 14 beds fully operational.
+S-2024-0025,C-013,Benjamin Santos,Infanta,Oct 2024,Production,Approved,Nov 2 2024,Oct,2024,138,,,Cooking,,,,,,,,,Cooking method used during low-wind week.
+S-2024-0019,C-014,Tomas Bautista,San Fabian,Nov 2024,Production,Approved,Dec 2 2024,Nov,2024,147,,,Solar Evaporation,,,,,,,,,Good dry-season run in November.
+S-2024-0013,C-015,Imelda Flores,San Fabian,Oct 2024,Production,Approved,Nov 3 2024,Oct,2024,96,,,Solar Evaporation,,,,,,,,,Second month of full operations. Production improving.
+S-2023-0182,C-001,Maria Santos,Bolinao,Apr 2023,Production,Approved,May 4 2023,Apr,2023,171,,,Solar Evaporation,,,,,,,,,Excellent April. Peak sun hours contributed to record output.
+S-2023-0165,C-004,Jose Dela Cruz,Lingayen,Apr 2023,Production,Approved,May 2 2023,Apr,2023,158,,,Hybrid,,,,,,,,,Piloted hybrid method on 2 beds.
+S-2023-0148,C-006,Lina Aquino,Bani,Mar 2023,Income,Approved,Apr 3 2023,Mar,2023,,,,,,,,,89,990,88110,Pangasinan Salt Cooperative,March income reflects lower 2023 market rate.
+S-2023-0135,C-008,Pedro Lim,Alaminos,May 2023,Production,Approved,Jun 3 2023,May,2023,147,,,Solar Evaporation,,,,,,,,,Consistent output throughout May.
+S-2023-0120,C-010,Ana Cruz,Dasol,Oct 2023,Production,Approved,Nov 1 2023,Oct,2023,166,,,Hybrid,,,,,,,,,Second year of hybrid method. Bed optimization ongoing.
+S-2023-0108,C-012,Rosa Garcia,Infanta,Nov 2023,Producers,Approved,Dec 2 2023,Nov,2023,,2.3,10,Solar Evaporation,Rosa Garcia,Rosa Garcia,(0932) 567-8901,1,,,,,Worker added for peak season.
+S-2023-0092,C-014,Tomas Bautista,San Fabian,Apr 2023,Income,Approved,May 4 2023,Apr,2023,,,,,,,,,133,990,131670,National Salt Traders Corp.,Income consistent with 2023 seasonal average.
+S-2022-0174,C-002,Carlos Reyes,Bolinao,Mar 2022,Production,Approved,Apr 2 2022,Mar,2022,155,,,Solar Evaporation,,,,,,,,,2022 production baseline established.
+S-2022-0158,C-005,Patricia Mendoza,Lingayen,Oct 2022,Production,Approved,Nov 3 2022,Oct,2022,135,,,Cooking,,,,,,,,,Cooking method used on 2 beds due to overcast week.
+S-2022-0142,C-007,Ramon Florendo,Bani,Apr 2022,Production,Approved,May 3 2022,Apr,2022,108,,,Solar Evaporation,,,,,,,,,Standard output for Bani April period.
+S-2022-0129,C-009,Sofia Torres,Alaminos,May 2022,Income,Approved,Jun 1 2022,May,2022,,,,,,,,,130,920,119600,Pangasinan Salt Cooperative,May 2022 income. Market rate was PHP 920.
+S-2022-0113,C-011,Miguel Bautista,Dasol,Mar 2022,Production,Approved,Apr 4 2022,Mar,2022,145,,,Solar Evaporation,,,,,,,,,Dasol 2022 March production. Above previous year baseline.
+S-2022-0097,C-013,Benjamin Santos,Infanta,Apr 2022,Production,Approved,May 2 2022,Apr,2022,124,,,Solar Evaporation,,,,,,,,,Consistent April output for 2022.
+S-2021-0188,C-001,Maria Santos,Bolinao,Oct 2021,Production,Approved,Nov 3 2021,Oct,2021,160,,,Solar Evaporation,,,,,,,,,2021 peak season. Standard solar evaporation.
+S-2021-0171,C-004,Jose Dela Cruz,Lingayen,Nov 2021,Production,Approved,Dec 2 2021,Nov,2021,148,,,Solar Evaporation,,,,,,,,,Baseline output. Solar evaporation primary method.
+S-2021-0154,C-010,Ana Cruz,Dasol,Oct 2021,Production,Approved,Nov 1 2021,Oct,2021,155,,,Solar Evaporation,,,,,,,,,Pre-hybrid baseline for Dasol.
+S-2021-0138,C-012,Rosa Garcia,Infanta,Apr 2021,Income,Approved,May 2 2021,Apr,2021,,,,,,,,,142,880,124960,Metro Salt Distributors Inc.,2021 income baseline. Market rate was PHP 880.
+S-2021-0122,C-006,Lina Aquino,Bani,Mar 2021,Producers,Approved,Apr 3 2021,Mar,2021,,1.2,6,Solar Evaporation,Lina Aquino,Lina Aquino,(0906) 789-0123,0,,,,,2021 producer record. Single worker. Farm smaller than current.
+S-2021-0108,C-014,Tomas Bautista,San Fabian,May 2021,Production,Approved,Jun 2 2021,May,2021,128,,,Cooking,,,,,,,,,Cooking method used for 2 of 9 beds. Exploring method diversification.

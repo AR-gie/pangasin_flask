@@ -1,0 +1,76 @@
+coordinator_id,coordinator_name,municipality,fiscal_year,sun_pct,cooked_pct,hybrid_pct
+C-001,Maria Santos,Bolinao,2020-21,95,5,0
+C-001,Maria Santos,Bolinao,2021-22,90,7,3
+C-001,Maria Santos,Bolinao,2022-23,82,7,11
+C-001,Maria Santos,Bolinao,2023-24,73,7,20
+C-001,Maria Santos,Bolinao,2024-25,65,7,28
+C-002,Carlos Reyes,Bolinao,2020-21,93,7,0
+C-002,Carlos Reyes,Bolinao,2021-22,88,9,3
+C-002,Carlos Reyes,Bolinao,2022-23,80,9,11
+C-002,Carlos Reyes,Bolinao,2023-24,72,8,20
+C-002,Carlos Reyes,Bolinao,2024-25,68,8,24
+C-003,Elena Navarro,Bolinao,2020-21,100,0,0
+C-003,Elena Navarro,Bolinao,2021-22,97,3,0
+C-003,Elena Navarro,Bolinao,2022-23,90,5,5
+C-003,Elena Navarro,Bolinao,2023-24,82,5,13
+C-003,Elena Navarro,Bolinao,2024-25,75,5,20
+C-004,Jose Dela Cruz,Lingayen,2020-21,91,9,0
+C-004,Jose Dela Cruz,Lingayen,2021-22,86,10,4
+C-004,Jose Dela Cruz,Lingayen,2022-23,78,10,12
+C-004,Jose Dela Cruz,Lingayen,2023-24,68,10,22
+C-004,Jose Dela Cruz,Lingayen,2024-25,60,9,31
+C-005,Patricia Mendoza,Lingayen,2020-21,94,6,0
+C-005,Patricia Mendoza,Lingayen,2021-22,89,8,3
+C-005,Patricia Mendoza,Lingayen,2022-23,82,8,10
+C-005,Patricia Mendoza,Lingayen,2023-24,75,7,18
+C-005,Patricia Mendoza,Lingayen,2024-25,68,7,25
+C-006,Lina Aquino,Bani,2020-21,88,12,0
+C-006,Lina Aquino,Bani,2021-22,82,14,4
+C-006,Lina Aquino,Bani,2022-23,74,14,12
+C-006,Lina Aquino,Bani,2023-24,65,14,21
+C-006,Lina Aquino,Bani,2024-25,55,15,30
+C-007,Ramon Florendo,Bani,2020-21,90,10,0
+C-007,Ramon Florendo,Bani,2021-22,84,12,4
+C-007,Ramon Florendo,Bani,2022-23,76,12,12
+C-007,Ramon Florendo,Bani,2023-24,68,11,21
+C-007,Ramon Florendo,Bani,2024-25,60,11,29
+C-008,Pedro Lim,Alaminos,2020-21,96,4,0
+C-008,Pedro Lim,Alaminos,2021-22,92,5,3
+C-008,Pedro Lim,Alaminos,2022-23,85,5,10
+C-008,Pedro Lim,Alaminos,2023-24,76,5,19
+C-008,Pedro Lim,Alaminos,2024-25,68,5,27
+C-009,Sofia Torres,Alaminos,2020-21,97,3,0
+C-009,Sofia Torres,Alaminos,2021-22,93,4,3
+C-009,Sofia Torres,Alaminos,2022-23,86,4,10
+C-009,Sofia Torres,Alaminos,2023-24,77,4,19
+C-009,Sofia Torres,Alaminos,2024-25,70,4,26
+C-010,Ana Cruz,Dasol,2020-21,89,11,0
+C-010,Ana Cruz,Dasol,2021-22,83,11,6
+C-010,Ana Cruz,Dasol,2022-23,73,10,17
+C-010,Ana Cruz,Dasol,2023-24,62,9,29
+C-010,Ana Cruz,Dasol,2024-25,52,9,39
+C-011,Miguel Bautista,Dasol,2020-21,91,9,0
+C-011,Miguel Bautista,Dasol,2021-22,86,10,4
+C-011,Miguel Bautista,Dasol,2022-23,78,10,12
+C-011,Miguel Bautista,Dasol,2023-24,69,9,22
+C-011,Miguel Bautista,Dasol,2024-25,61,9,30
+C-012,Rosa Garcia,Infanta,2020-21,93,7,0
+C-012,Rosa Garcia,Infanta,2021-22,88,8,4
+C-012,Rosa Garcia,Infanta,2022-23,80,8,12
+C-012,Rosa Garcia,Infanta,2023-24,71,8,21
+C-012,Rosa Garcia,Infanta,2024-25,64,7,29
+C-013,Benjamin Santos,Infanta,2020-21,95,5,0
+C-013,Benjamin Santos,Infanta,2021-22,91,6,3
+C-013,Benjamin Santos,Infanta,2022-23,84,6,10
+C-013,Benjamin Santos,Infanta,2023-24,75,6,19
+C-013,Benjamin Santos,Infanta,2024-25,67,6,27
+C-014,Tomas Bautista,San Fabian,2020-21,84,16,0
+C-014,Tomas Bautista,San Fabian,2021-22,78,17,5
+C-014,Tomas Bautista,San Fabian,2022-23,70,16,14
+C-014,Tomas Bautista,San Fabian,2023-24,61,15,24
+C-014,Tomas Bautista,San Fabian,2024-25,54,14,32
+C-015,Imelda Flores,San Fabian,2020-21,98,2,0
+C-015,Imelda Flores,San Fabian,2021-22,95,3,2
+C-015,Imelda Flores,San Fabian,2022-23,88,3,9
+C-015,Imelda Flores,San Fabian,2023-24,80,3,17
+C-015,Imelda Flores,San Fabian,2024-25,72,3,25

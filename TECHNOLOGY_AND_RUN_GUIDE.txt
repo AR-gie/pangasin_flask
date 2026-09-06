@@ -1,0 +1,239 @@
+PANGASIN TECHNOLOGY AND RUN GUIDE
+==================================
+
+1. PROGRAMMING LANGUAGES AND FORMATS
+
+Python
+------
+Used for the Flask backend, API routes, database models, CSV seed script, and
+application startup.
+
+Main files:
+- app.py
+- run.py
+- database/seed.py
+
+TypeScript
+----------
+Used for the React frontend. TypeScript adds type checking to the user
+interface and helps keep dashboard, form, chart, and user data consistent.
+
+Main files:
+- frontend/src/App.tsx
+- frontend/src/main.tsx
+- frontend/src/vite-env.d.ts
+
+JavaScript
+----------
+Used by the Vite and React build tooling. The TypeScript frontend is compiled
+to browser JavaScript before Flask serves it.
+
+HTML
+----
+Used for the browser document shell and the application entry point.
+
+Main file:
+- frontend/index.html
+
+CSS
+---
+Used for layout, colors, typography, responsive behavior, and Tailwind CSS
+utilities.
+
+Main file:
+- frontend/src/index.css
+
+SQL
+---
+Used to create the MySQL database and tables.
+
+Main file:
+- database/schema.sql
+
+CSV
+---
+Used as the initial source data for users, submissions, prescriptions,
+production history, monthly production, and production methods.
+
+Files:
+- database/users.csv
+- database/submissions.csv
+- database/prescriptions.csv
+- database/municipal_production_5y.csv
+- database/farm_monthly_production.csv
+- database/production_methods.csv
+
+JSON
+----
+Used by frontend and build configuration files, including package.json,
+TypeScript configuration, and Vite/Figma build metadata.
+
+SVG and PNG
+-----------
+Used for PangAsin logos, map municipality shapes, map backgrounds, chart
+artwork, and other visual assets.
+
+2. DATABASE
+
+Database engine: MySQL 8 or newer
+
+Python database libraries:
+- Flask-SQLAlchemy: database models and queries
+- PyMySQL: MySQL connection driver
+
+Database name:
+- pangasin
+
+Tables created by database/schema.sql:
+- users
+- submissions
+- prescriptions
+- municipal_production_5y
+- farm_monthly_production
+- production_methods
+
+3. INSTALLATION ON WINDOWS
+
+Open either Command Prompt or PowerShell in the project folder.
+
+Command Prompt:
+cd /d "C:\Users\cuadr\OneDrive\Desktop\pangasin_flask"
+
+PowerShell:
+Set-Location "C:\Users\cuadr\OneDrive\Desktop\pangasin_flask"
+
+Create and activate a virtual environment:
+
+Command Prompt:
+python -m venv .venv
+.venv\Scripts\activate
+
+PowerShell:
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+Install Python packages:
+
+Command Prompt:
+python -m pip install -r requirements.txt
+
+PowerShell:
+python -m pip install -r requirements.txt
+
+Copy the environment template:
+
+Command Prompt:
+copy .env.example .env
+
+PowerShell:
+Copy-Item .env.example .env
+
+Edit .env and set the real MySQL username, password, host, and database URL.
+Do not commit .env because it may contain database credentials.
+
+4. CREATE THE MYSQL DATABASE
+
+Make sure MySQL is installed and running. From this folder, run:
+
+Command Prompt:
+mysql -u root -p < database\schema.sql
+
+PowerShell:
+Get-Content "database\schema.sql"
+
+Enter the MySQL password when prompted.
+
+This creates the pangasin database and all required tables.
+
+5. LOAD THE CSV DATA
+
+After the database has been created and .env is configured, run:
+
+Command Prompt:
+python database\seed.py
+
+PowerShell:
+python .\database\seed.py
+
+The seed script imports all copied CSV files into MySQL.
+
+6. BUILD THE FRONTEND
+
+The frontend source and assets are in frontend. To rebuild after changing
+frontend source files:
+
+Command Prompt:
+cd frontend
+pnpm install
+pnpm build
+cd ..
+
+PowerShell:
+Set-Location frontend
+pnpm install
+pnpm build
+Set-Location ..
+
+The compiled files are written to:
+
+frontend/dist
+
+Flask serves this compiled frontend.
+
+7. RUN THE SYSTEM
+
+From the pangasin_flask folder, with the virtual environment activated:
+
+Command Prompt:
+python run.py
+
+PowerShell:
+python .\run.py
+
+Open the application in a browser:
+
+http://127.0.0.1:5000/
+
+Health check:
+
+http://127.0.0.1:5000/api/health
+
+Expected health response:
+
+{"service":"PangAsin Flask","status":"ok"}
+
+8. IMPORTANT API ROUTES
+
+GET  /api/health
+GET  /api/users
+GET  /api/users?role=coordinator
+GET  /api/users?role=admin
+GET  /api/submissions
+GET  /api/submissions?coordinator_id=C-001
+GET  /api/submissions?status=Pending
+POST /api/submissions
+PATCH /api/submissions/<submission_id>
+GET  /api/analytics/summary
+
+9. PROJECT FOLDERS
+
+app.py                 Flask application and API
+run.py                 Application runner
+requirements.txt       Python dependencies
+.env.example           Environment variable template
+frontend/src           Original React and TypeScript source
+frontend/public         Original static assets and CSV copies
+frontend/dist           Compiled frontend served by Flask
+database/schema.sql    MySQL database and table creation
+database/seed.py       CSV-to-MySQL importer
+database/*.csv         Initial application data
+
+10. Ready to use instructions (use this)
+
+a. open windows PowerShell (optional: Admin)
+b. cd (put path here ie: cd C:\Users\cuadr\Desktop\pangasin_flask)
+c. enter: .\.venv\Scripts\Activate.ps1
+d. enter: pip install flask-cors (if error occurs run: python.exe -m pip install --upgrade pip)
+e. enter: python run.py
+f. go to http://127.0.0.1:5000
+g. ctrl + c to close
