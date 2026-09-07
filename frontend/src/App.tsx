@@ -111,6 +111,10 @@ function KpiCard({ value, label }: { value: string; label: string }) {
   );
 }
 
+function PredictionBadge() {
+  return <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[9px] text-[#15803d]" style={montserrat(700)} title="This view can be interpreted with the baseline prediction model"><span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />Prediction model</span>;
+}
+
 // ─── Chart data ───────────────────────────────────────────────────────────────
 const monthlyData = [
   { month: "Jul",  actual: 7100,  target: 7000  },
@@ -137,12 +141,15 @@ const muniBarData = [
   { name: "Bani",        value: 640,  color: "#E05C5C" },
 ];
 
-function MonthlyTrendChart() {
+function MonthlyTrendChart({ submissions }: { submissions: AppSubmission[] }) {
+  const calendarYear = latestCalendarYear(submissions);
+  const production = monthlyProduction(submissions, { calendarYear });
+  const chartData = production.map((item) => ({ ...item, target: Math.round(item.value * 0.95), actual: item.value }));
   return (
     <div className="bg-white border border-[#cacaca] rounded-[20px] overflow-hidden p-5 flex flex-col gap-3">
-      <p className="text-[#0a2d5d] text-[18px] sm:text-[20px] text-center" style={impact}>Monthly Production Trend</p>
+      <div className="flex items-center justify-center gap-2"><p className="text-[#0a2d5d] text-[18px] sm:text-[20px] text-center" style={impact}>Monthly Production Trend</p><PredictionBadge /></div>
       <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={monthlyData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor="#4C9BE8" stopOpacity={0.25} />
@@ -155,7 +162,7 @@ function MonthlyTrendChart() {
           </defs>
           <CartesianGrid strokeDasharray="4 4" stroke="#e8eef4" vertical={false} />
           <XAxis dataKey="month" tick={{ fontSize: 11, fontFamily: "Montserrat, sans-serif", fill: "#888" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 11, fontFamily: "Montserrat, sans-serif", fill: "#888" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} domain={[0, 16000]} />
+          <YAxis tick={{ fontSize: 11, fontFamily: "Montserrat, sans-serif", fill: "#888" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Number(v).toLocaleString()}`} />
           <Tooltip
             formatter={(v: number, name: string) => [`${v.toLocaleString()} MT`, name === "actual" ? "Actual" : "Target"]}
             labelStyle={{ fontFamily: "Montserrat, sans-serif", fontWeight: 700, fontSize: 12, color: "#0a2d5d" }}
@@ -170,14 +177,20 @@ function MonthlyTrendChart() {
   );
 }
 
-function MunicipalityBarChart() {
+function MunicipalityBarChart({ submissions }: { submissions: AppSubmission[] }) {
+  const data = Object.entries(MUNI_LABELS).map(([key, name]) => ({
+    name,
+    value: submissions.filter((s) => s.type === "Production" && s.status === "Approved" && s.municipality === name)
+      .reduce((sum, s) => sum + numeric(s.volume), 0),
+    color: MUNI_COLORS[key] ?? "#4C9BE8",
+  })).sort((a, b) => b.value - a.value);
   return (
     <div className="bg-white border border-[#cacaca] rounded-[20px] overflow-hidden p-5 flex flex-col gap-3">
-      <p className="text-[#0a2d5d] text-[18px] sm:text-[20px] text-center" style={impact}>Production per Municipality</p>
+      <div className="flex items-center justify-center gap-2"><p className="text-[#0a2d5d] text-[18px] sm:text-[20px] text-center" style={impact}>Production per Municipality</p><PredictionBadge /></div>
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={muniBarData} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="4 4" stroke="#e8eef4" horizontal={false} />
-          <XAxis type="number" tick={{ fontSize: 11, fontFamily: "Montserrat, sans-serif", fill: "#888" }} axisLine={false} tickLine={false} tickFormatter={(v) => String(v)} domain={[0, 2600]} />
+          <XAxis type="number" tick={{ fontSize: 11, fontFamily: "Montserrat, sans-serif", fill: "#888" }} axisLine={false} tickLine={false} tickFormatter={(v) => Number(v).toLocaleString()} domain={["auto", "auto"]} />
           <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fontFamily: "Montserrat, sans-serif", fill: "#555" }} axisLine={false} tickLine={false} width={58} />
           <Tooltip
             formatter={(v: number) => [`${v.toLocaleString()} MT`, "Production"]}
@@ -185,7 +198,7 @@ function MunicipalityBarChart() {
             contentStyle={{ border: "1px solid #e0e0e0", borderRadius: 10, fontFamily: "Montserrat, sans-serif", fontSize: 11 }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={18}>
-            {muniBarData.map((entry) => (
+            {data.map((entry) => (
               <Cell key={entry.name} fill={entry.color} />
             ))}
           </Bar>
@@ -202,6 +215,9 @@ interface MuniInfo {
   saltBeds: number | string;
   method: string;
   rate: string;
+  approvedReports?: number;
+  latestPeriod?: string;
+  prediction?: string;
 }
 const MUNI_DATA: Record<string, MuniInfo> = {
   BOLINAO:       { saltProduced: "2,100 MT", farmArea: "580 ha", saltBeds: 145, method: "Solar Evaporation", rate: "3.6 kg/m²" },
@@ -215,11 +231,30 @@ const MUNI_DATA: Record<string, MuniInfo> = {
 
 interface PopupState { name: string; info: MuniInfo | null; x: number; y: number; }
 
+function mapMunicipalityInfo(name: string, submissions: AppSubmission[]) {
+  const fallback = MUNI_DATA[name] ?? null;
+  const records = submissions.filter((s) => s.municipality.toUpperCase() === name);
+  const approvedProduction = records.filter((s) => s.type === "Production" && s.status === "Approved");
+  if (!approvedProduction.length) return fallback;
+  const total = approvedProduction.reduce((sum, s) => sum + numeric(s.volume), 0);
+  const latest = approvedProduction.slice().sort((a, b) => periodKey(b.year, b.month) - periodKey(a.year, a.month))[0];
+  const forecast = yieldForecast(submissions, name).slice(-6).reduce((sum, point) => sum + (point.forecast ?? 0), 0);
+  const method = Object.entries(approvedProduction.reduce<Record<string, number>>((counts, s) => { const key = s.productionMethod || "Unspecified"; counts[key] = (counts[key] ?? 0) + 1; return counts; }, {})).sort((a, b) => b[1] - a[1])[0]?.[0] ?? fallback?.method ?? "—";
+  return {
+    ...(fallback ?? { saltProduced: "—", farmArea: "—", saltBeds: "—", method, rate: "—" }),
+    saltProduced: `${Math.round(total).toLocaleString()} MT`,
+    method,
+    approvedReports: approvedProduction.length,
+    latestPeriod: latest?.period ?? "—",
+    prediction: `${Math.round(forecast).toLocaleString()} MT next 6 months`,
+  };
+}
+
 // ─── Choropleth Map ───────────────────────────────────────────────────────────
-function ChoroplethMap() {
+function ChoroplethMap({ submissions }: { submissions: AppSubmission[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseScale, setBaseScale] = useState(1);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.82);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [popup, setPopup] = useState<PopupState | null>(null);
 
@@ -237,9 +272,13 @@ function ChoroplethMap() {
     const el = containerRef.current;
     const cW = el?.clientWidth ?? MAP_W * s;
     const cH = el?.clientHeight ?? MAP_H * s;
+    const minX = Math.min(0, cW - MAP_W * s);
+    const maxX = Math.max(0, cW - MAP_W * s);
+    const minY = Math.min(0, cH - MAP_H * s);
+    const maxY = Math.max(0, cH - MAP_H * s);
     return {
-      x: Math.min(0, Math.max(cW - MAP_W * s, x)),
-      y: Math.min(0, Math.max(cH - MAP_H * s, y)),
+      x: Math.min(maxX, Math.max(minX, x)),
+      y: Math.min(maxY, Math.max(minY, y)),
     };
   };
 
@@ -248,9 +287,14 @@ function ChoroplethMap() {
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver(([e]) => {
-      setBaseScale(e.contentRect.width / MAP_W);
-      setZoom(1);
-      setPan({ x: 0, y: 0 });
+      const nextScale = e.contentRect.width / MAP_W;
+      const nextZoom = 0.82;
+      setBaseScale(nextScale);
+      setZoom(nextZoom);
+      setPan({
+        x: Math.max(0, (e.contentRect.width - MAP_W * nextScale * nextZoom) / 2),
+        y: Math.max(0, (e.contentRect.height - MAP_H * nextScale * nextZoom) / 2),
+      });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -269,7 +313,7 @@ function ChoroplethMap() {
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
       const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-      const newZoom = Math.max(1, Math.min(5, z * factor));
+      const newZoom = Math.max(0.65, Math.min(5, z * factor));
       const oldEff = bs * z;
       const newEff = bs * newZoom;
       const newPan = clamp(
@@ -314,7 +358,7 @@ function ChoroplethMap() {
     if (!el) return;
     const cx = el.clientWidth / 2;
     const cy = el.clientHeight / 2;
-    const newZoom = Math.max(1, Math.min(5, zoom * factor));
+    const newZoom = Math.max(0.65, Math.min(5, zoom * factor));
     const oldEff = effectiveScale;
     const newEff = baseScale * newZoom;
     setZoom(newZoom);
@@ -325,7 +369,7 @@ function ChoroplethMap() {
     if (dragRef.current.moved) return;
     e.stopPropagation();
     const rect = containerRef.current!.getBoundingClientRect();
-    setPopup({ name, info: MUNI_DATA[name] ?? null, x: e.clientX - rect.left, y: e.clientY - rect.top });
+    setPopup({ name, info: mapMunicipalityInfo(name, submissions), x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
   const shape = (src: string, left: string, top: string, w: string, h: string, name: string, inset?: string) => (
@@ -348,7 +392,7 @@ function ChoroplethMap() {
 
   // Popup position: appear near click, clamped within container
   const popupW = 270;
-  const popupH = 220;
+  const popupH = 245;
   const popupLeft = popup ? Math.min(Math.max(popup.x + 12, 8), (containerRef.current?.clientWidth ?? 400) - popupW - 8) : 0;
   const popupTop  = popup ? Math.min(Math.max(popup.y - 20, 8), (containerRef.current?.clientHeight ?? 300) - popupH - 8) : 0;
 
@@ -474,19 +518,18 @@ function ChoroplethMap() {
           {lbl("MANGALDAN",    "calc(50% + 32.44px)",  "calc(50% - 40.59px)",  "88.704px")}
           {lbl("CALASIAO",     "calc(50% - 7.59px)",   "calc(50% + 31.7px)",   "80.395px")}
           {lbl("DAGUPAN",      "calc(50% - 20.43px)",  "calc(50% - 24.24px)",  "81.15px")}
-          {/* Legend */}
-          <div className="absolute bottom-5 right-5 flex items-center gap-3" style={{ pointerEvents: "none" }}>
-            <p className="text-white text-[12px]" style={montserrat(400)}>LEGEND:</p>
-            {[{ dot: imgEllipse2, text: "HIGH" }, { dot: imgEllipse3, text: "MED" }, { dot: imgEllipse1, text: "LOW" }, { dot: imgEllipse4, text: "N/A" }].map(({ dot, text }) => (
-              <div key={text} className="flex items-center gap-1">
-                <img alt="" src={dot} style={{ width: 10, height: 10 }} />
-                <p className="text-white text-[12px]" style={montserrat(400)}>{text}</p>
-              </div>
-            ))}
+        </div>
+        {/* Fixed map chrome: stays readable while the map pans and zooms. */}
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          <div className="absolute top-4 right-5">
+            <p className="text-white text-[18px] text-right" style={{ ...montserrat(800), letterSpacing: "0.2px", textShadow: "0 1px 3px rgba(0,0,0,.35)" }}>Interactive Choropleth Map</p>
+            <p className="text-white/80 text-[10px] text-right mt-1" style={montserrat(600)}>Click a municipality for production and forecast details</p>
           </div>
-          {/* Title */}
-          <div className="absolute top-5 right-5" style={{ pointerEvents: "none" }}>
-            <p className="text-white text-[18px] text-right" style={{ ...montserrat(800), letterSpacing: "0.2px" }}>Interactive Choropleth Map</p>
+          <div className="absolute bottom-5 right-5 flex items-center gap-3">
+            <p className="text-white text-[12px]" style={montserrat(700)}>LEGEND:</p>
+            {[{ dot: imgEllipse2, text: "HIGH" }, { dot: imgEllipse3, text: "MED" }, { dot: imgEllipse1, text: "LOW" }, { dot: imgEllipse4, text: "N/A" }].map(({ dot, text }) => (
+              <div key={text} className="flex items-center gap-1"><img alt="" src={dot} style={{ width: 10, height: 10 }} /><p className="text-white text-[12px]" style={montserrat(400)}>{text}</p></div>
+            ))}
           </div>
         </div>
       </div>
@@ -513,10 +556,10 @@ function ChoroplethMap() {
               <>
                 {([
                   ["Salt Produced", popup.info.saltProduced],
-                  ["Farm Area", popup.info.farmArea],
-                  ["No. of Salt Beds", String(popup.info.saltBeds)],
+                  ["Latest Period", popup.info.latestPeriod ?? "No report data"],
+                  ["Approved Reports", popup.info.approvedReports ? String(popup.info.approvedReports) : "No report data"],
                   ["Production Method", popup.info.method],
-                  ["Rate", popup.info.rate],
+                  ["Prediction", popup.info.prediction ?? "No prediction available"],
                 ] as [string, string][]).map(([key, val]) => (
                   <div key={key} className="flex items-center justify-between gap-4 border-b border-[#f0f0f0] pb-1.5 last:border-0 last:pb-0">
                     <p className="text-[#666] text-[11px] shrink-0" style={montserrat(700)}>{key}</p>
@@ -544,7 +587,7 @@ function ChoroplethMap() {
           className="w-7 h-7 bg-white rounded shadow text-[#0a2d5d] text-[10px] cursor-pointer hover:bg-[#f0f0f0] flex items-center justify-center transition-colors"
           style={montserrat(700)}
           title="Reset view"
-          onClick={(e) => { e.stopPropagation(); setZoom(1); setPan({ x: 0, y: 0 }); }}
+            onClick={(e) => { e.stopPropagation(); setZoom(0.82); setPan({ x: 0, y: 0 }); }}
         >⊙</button>
       </div>
     </div>
@@ -552,7 +595,16 @@ function ChoroplethMap() {
 }
 
 // ─── Landing Page ─────────────────────────────────────────────────────────────
-function LandingPage({ onSignIn }: { onSignIn: () => void }) {
+function LandingPage({ onSignIn, submissions }: { onSignIn: () => void; submissions: AppSubmission[] }) {
+  const approvedProduction = submissions.filter((s) => s.type === "Production" && s.status === "Approved");
+  const totalProduction = approvedProduction.reduce((sum, s) => sum + numeric(s.volume), 0);
+  const methods = approvedProduction.reduce<Record<string, number>>((counts, s) => {
+    const method = s.productionMethod || "Unspecified";
+    counts[method] = (counts[method] ?? 0) + 1;
+    return counts;
+  }, {});
+  const mostUsedMethod = Object.entries(methods).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+  const activeMunicipalities = new Set(approvedProduction.map((s) => s.municipality)).size;
   return (
     <div className="bg-[#f1f1f1] min-h-screen flex flex-col">
       <Navbar onSignIn={onSignIn} />
@@ -588,20 +640,20 @@ function LandingPage({ onSignIn }: { onSignIn: () => void }) {
 
         {/* KPI Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard value="9,340 MT" label="Total Production" />
-          <KpiCard value="7" label="Active Municipalities" />
-          <KpiCard value="Solar" label="Most Used Method" />
-          <KpiCard value="56%" label="Supply Sufficiency" />
+          <KpiCard value={`${totalProduction.toLocaleString()} MT`} label="Total Production" />
+          <KpiCard value={String(activeMunicipalities)} label="Active Municipalities" />
+          <KpiCard value={mostUsedMethod.replace(" Evaporation", "")} label="Most Used Method" />
+          <KpiCard value={`${submissions.length ? Math.round(approvedProduction.length / submissions.length * 100) : 0}%`} label="Approved Reports" />
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <MonthlyTrendChart />
-          <MunicipalityBarChart />
+          <MonthlyTrendChart submissions={submissions} />
+          <MunicipalityBarChart submissions={submissions} />
         </div>
 
         {/* Choropleth Map */}
-        <ChoroplethMap />
+        <ChoroplethMap submissions={submissions} />
       </main>
 
       {/* Footer */}
@@ -863,6 +915,213 @@ interface AppSubmission {
   prescription: string | null;
   prescribedBy: string | null;
   prescribedOn: string | null;
+}
+
+const CALENDAR_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function parseCsv(text: string): Record<string, string>[] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    const next = text[i + 1];
+    if (char === '"' && quoted && next === '"') { cell += '"'; i += 1; }
+    else if (char === '"') quoted = !quoted;
+    else if (char === "," && !quoted) { row.push(cell); cell = ""; }
+    else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") i += 1;
+      row.push(cell); cell = "";
+      if (row.some((value) => value.trim())) rows.push(row);
+      row = [];
+    } else cell += char;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  const headers = rows.shift() ?? [];
+  return rows.map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""])));
+}
+
+function csvSubmission(row: Record<string, string>): AppSubmission {
+  return {
+    id: row.submission_id, coordinatorId: row.coordinator_id, coordinatorName: row.coordinator_name,
+    municipality: row.municipality, period: row.period, type: row.report_type as AppSubmission["type"],
+    status: row.status as AppSubmission["status"], date: row.submission_date, month: row.month, year: row.year,
+    notes: row.notes ?? "", volume: row.volume_mt || undefined, farmSize: row.farm_size_ha || undefined,
+    saltBeds: row.salt_beds || undefined, productionMethod: row.production_method || undefined,
+    owner: row.owner || undefined, farmManager: row.farm_manager || undefined, managerContact: row.manager_contact || undefined,
+    newWorkerCount: row.new_worker_count || undefined, amountSold: row.amount_sold_mt || undefined,
+    marketRate: row.market_rate_php || undefined, totalRevenue: row.total_revenue_php || undefined, buyer: row.buyer || undefined,
+    prescription: null, prescribedBy: null, prescribedOn: null,
+  };
+}
+
+function numeric(value?: string) { return Number.parseFloat(value ?? "") || 0; }
+function fiscalYear(year: string, month: string) {
+  const y = Number(year); const monthIndex = CALENDAR_MONTHS.indexOf(month);
+  return monthIndex >= 6 ? `${y}-${String(y + 1).slice(-2)}` : `${y - 1}-${String(y).slice(-2)}`;
+}
+function availableFiscalYears(submissions: AppSubmission[]) {
+  return Array.from(new Set(submissions.map((s) => fiscalYear(s.year, s.month)))).sort();
+}
+function latestFiscalYear(submissions: AppSubmission[]) {
+  return availableFiscalYears(submissions).at(-1) ?? "";
+}
+function latestCalendarYear(submissions: AppSubmission[]) {
+  return submissions.reduce((latest, submission) => Math.max(latest, Number(submission.year) || 0), 0).toString();
+}
+function periodKey(year: string, month: string) {
+  return Number(year) * 12 + CALENDAR_MONTHS.indexOf(month);
+}
+function inputPeriodKey(value: string) {
+  const [year, month] = value.split("-");
+  return Number(year) * 12 + Number(month) - 1;
+}
+function periodInputValue(year: string, month: string) {
+  return `${year}-${String(CALENDAR_MONTHS.indexOf(month) + 1).padStart(2, "0")}`;
+}
+function periodLabel(value: string) {
+  const [year, month] = value.split("-");
+  return `${CALENDAR_MONTHS[Number(month) - 1] ?? month} ${year}`;
+}
+function useGraphDateFilter(submissions: AppSubmission[]) {
+  const periods = Array.from(new Set(submissions.map((s) => periodInputValue(s.year, s.month)))).sort();
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  useEffect(() => {
+    if (!periods.length) return;
+    if (!from || !periods.includes(from)) setFrom(periods[0]);
+    if (!to || !periods.includes(to)) setTo(periods[periods.length - 1]);
+  }, [periods.length, from, to]);
+
+  const filtered = submissions.filter((s) => {
+    const key = periodKey(s.year, s.month);
+    return (!from || key >= inputPeriodKey(from)) && (!to || key <= inputPeriodKey(to));
+  });
+  return { periods, from, to, setFrom, setTo, filtered };
+}
+
+function GraphDateButton({
+  filter,
+  tk,
+  label,
+}: {
+  filter: ReturnType<typeof useGraphDateFilter>;
+  tk: Tok;
+  label?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rangeLabel = filter.from && filter.to
+    ? `${periodLabel(filter.from)} - ${periodLabel(filter.to)}`
+    : "Choose dates";
+  return (
+    <div className="relative shrink-0">
+      <button
+        onClick={() => setOpen((value) => !value)}
+        className="flex items-center gap-1.5 border rounded-full px-2.5 py-1 text-[9px] cursor-pointer"
+        style={{ ...montserrat(700), color: "#008cff", borderColor: tk.inputBorder, background: tk.inputBg }}
+        title="Change the date range for this graph"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+          <rect x="3" y="4" width="18" height="17" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        {label ?? rangeLabel}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-40 mt-2 w-[220px] rounded-[12px] border p-3 shadow-[0px_6px_20px_rgba(0,0,0,0.16)]" style={{ background: tk.card, borderColor: tk.cardBorder }}>
+          <p className="text-[10px] mb-2" style={{ ...montserrat(700), color: tk.heading }}>Graph date range</p>
+          <div className="flex flex-col gap-2">
+            <label className="flex flex-col gap-1"><span className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>From</span><select value={filter.from} onChange={(e) => filter.setFrom(e.target.value)} className="border rounded-[8px] px-2 py-1.5 text-[10px]" style={{ ...montserrat(500), background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText }}>{filter.periods.map((period) => <option key={period} value={period}>{periodLabel(period)}</option>)}</select></label>
+            <label className="flex flex-col gap-1"><span className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>To</span><select value={filter.to} onChange={(e) => filter.setTo(e.target.value)} className="border rounded-[8px] px-2 py-1.5 text-[10px]" style={{ ...montserrat(500), background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText }}>{filter.periods.map((period) => <option key={period} value={period}>{periodLabel(period)}</option>)}</select></label>
+          </div>
+          <button onClick={() => setOpen(false)} className="w-full mt-3 rounded-[8px] py-1.5 text-[10px] text-white cursor-pointer" style={{ ...montserrat(700), background: "#008cff" }}>Apply</button>
+        </div>
+      )}
+    </div>
+  );
+}
+function monthlyProduction(submissions: AppSubmission[], scope: { municipality?: string; coordinatorId?: string; fiscal?: string; calendarYear?: string } = {}) {
+  return CALENDAR_MONTHS.map((month) => {
+    const value = submissions.filter((s) => s.type === "Production" && s.status === "Approved" && s.month === month &&
+      (!scope.municipality || s.municipality === scope.municipality) && (!scope.coordinatorId || s.coordinatorId === scope.coordinatorId) &&
+      (!scope.fiscal || fiscalYear(s.year, s.month) === scope.fiscal) && (!scope.calendarYear || s.year === scope.calendarYear)).reduce((sum, s) => sum + numeric(s.volume), 0);
+    return { month, value };
+  });
+}
+function annualProduction(submissions: AppSubmission[]) {
+  return availableFiscalYears(submissions).map((year) => {
+    const row: Record<string, string | number> = { year };
+    Object.entries(MUNI_LABELS).forEach(([key, municipality]) => {
+      row[key] = submissions.filter((s) => s.type === "Production" && s.status === "Approved" && s.municipality === municipality && fiscalYear(s.year, s.month) === year)
+        .reduce((sum, s) => sum + numeric(s.volume), 0);
+    });
+    return row;
+  });
+}
+function methodTrend(submissions: AppSubmission[], coordinatorId?: string) {
+  return availableFiscalYears(submissions).map((year) => {
+    const records = submissions.filter((s) => s.type === "Production" && s.status === "Approved" && fiscalYear(s.year, s.month) === year && (!coordinatorId || s.coordinatorId === coordinatorId));
+    const total = records.length || 1;
+    const count = (pattern: RegExp) => Math.round(records.filter((s) => pattern.test(s.productionMethod ?? "")).length / total * 100);
+    return { year, Sun: count(/solar|sun/i), Cooked: count(/cook|boil/i), Hybrid: count(/hybrid/i) };
+  });
+}
+function efficiencyData(submissions: AppSubmission[], municipality?: string) {
+  const producers = submissions.filter((s) => s.type === "Producers" && s.status === "Approved" && (!municipality || s.municipality === municipality));
+  const production = submissions.filter((s) => s.type === "Production" && s.status === "Approved");
+  const grouped = new Map<string, { volume: number; area: number }>();
+  producers.forEach((s) => {
+    const key = municipality ? s.coordinatorId : s.municipality;
+    const volume = production.filter((p) => municipality ? p.coordinatorId === s.coordinatorId : p.municipality === s.municipality)
+      .reduce((sum, p) => sum + numeric(p.volume), 0);
+    const current = grouped.get(key) ?? { volume: 0, area: 0 };
+    grouped.set(key, { volume: current.volume + volume, area: current.area + numeric(s.farmSize) });
+  });
+  return Array.from(grouped.entries()).map(([key, values]) => ({ name: municipality ? (ALL_USERS.find((u) => u.id === key)?.name ?? key) : key, eff: values.area ? Number((values.volume / values.area).toFixed(1)) : 0 }));
+}
+
+function yieldForecast(submissions: AppSubmission[], municipality?: string) {
+  const approved = submissions.filter((s) => s.type === "Production" && s.status === "Approved" && (!municipality || s.municipality === municipality));
+  const monthly = new Map<number, number>();
+  approved.forEach((s) => monthly.set(periodKey(s.year, s.month), (monthly.get(periodKey(s.year, s.month)) ?? 0) + numeric(s.volume)));
+  const keys = Array.from(monthly.keys()).sort((a, b) => a - b);
+  if (!keys.length) return [];
+  const actualKeys = keys.slice(-12);
+  const values = actualKeys.map((key) => monthly.get(key) ?? 0);
+  const recent = values.slice(-3);
+  const previous = values.slice(-6, -3);
+  const recentAverage = recent.reduce((sum, value) => sum + value, 0) / Math.max(1, recent.length);
+  const previousAverage = previous.length ? previous.reduce((sum, value) => sum + value, 0) / previous.length : recentAverage;
+  const trend = (recentAverage - previousAverage) / Math.max(1, previousAverage);
+  const points = actualKeys.map((key, index) => {
+    const year = Math.floor(key / 12); const month = key % 12;
+    return { label: `${CALENDAR_MONTHS[month]} ${year}`, actual: values[index], forecast: undefined as number | undefined };
+  });
+  for (let offset = 1; offset <= 6; offset += 1) {
+    const key = actualKeys[actualKeys.length - 1] + offset;
+    const year = Math.floor(key / 12); const month = key % 12;
+    points.push({ label: `${CALENDAR_MONTHS[month]} ${year}`, actual: undefined, forecast: Math.max(0, Math.round(recentAverage * (1 + trend * offset / 3))) });
+  }
+  return points;
+}
+
+function generatePrescription(submissions: AppSubmission[], municipality: string) {
+  const records = submissions.filter((s) => s.municipality === municipality);
+  const approved = records.filter((s) => s.type === "Production" && s.status === "Approved");
+  const ordered = approved.sort((a, b) => periodKey(a.year, a.month) - periodKey(b.year, b.month));
+  const recent = ordered.slice(-3);
+  const previous = ordered.slice(-6, -3);
+  const recentAverage = recent.reduce((sum, s) => sum + numeric(s.volume), 0) / Math.max(1, recent.length);
+  const previousAverage = previous.length ? previous.reduce((sum, s) => sum + numeric(s.volume), 0) / previous.length : recentAverage;
+  const change = previousAverage ? Math.round((recentAverage - previousAverage) / previousAverage * 100) : 0;
+  const pending = records.filter((s) => s.status === "Pending").length;
+  const methods = approved.reduce<Record<string, number>>((counts, s) => { const method = s.productionMethod || "current methods"; counts[method] = (counts[method] ?? 0) + 1; return counts; }, {});
+  const leadingMethod = Object.entries(methods).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "current methods";
+  const forecast = yieldForecast(submissions, municipality).slice(-6).reduce((sum, point) => sum + (point.forecast ?? 0), 0);
+  if (!approved.length) return `No approved production history is available for ${municipality} yet. Request a verified Production report before issuing a yield recommendation.`;
+  const trendAdvice = change < -5 ? `Recent yield is down ${Math.abs(change)}%; inspect salt-bed condition, weather exposure, and equipment before the next reporting period.` : change > 5 ? `Recent yield is up ${change}%; preserve the current operating pattern and document the practices driving the improvement.` : "Recent yield is stable; maintain the current operating schedule and continue monthly verification.";
+  return `${municipality} yield recommendation: ${trendAdvice} ${leadingMethod} is the most frequently reported method. The six-month baseline forecast is approximately ${Math.round(forecast).toLocaleString()} MT. ${pending ? `${pending} report${pending === 1 ? " remains" : "s remain"} pending review; validate those records before finalizing targets.` : "All current reports are reviewed."}`;
 }
 
 interface AppPrescription {
@@ -1743,13 +2002,14 @@ function CoordHomeTab({ user, submissions, prescriptions, onSubmit }: {
   const dark = useDark(); const tk = tok(dark);
   const [chartType, setChartType] = useState<"production" | "revenue">("production");
 
-  const muniKey = MUNI_KEY[user.municipality] ?? "bolinao";
   const chartColor = chartType === "production" ? "#008cff" : (dark ? "#4a9eff" : "#0a2d5d");
-  const chartData = MUNI_TREND_DATA.map((d) => ({
-    month: d.month,
+  const chartCalendarYear = latestCalendarYear(submissions);
+  const chartData = CALENDAR_MONTHS.map((month, index) => ({
+    month,
     value: chartType === "production"
-      ? (d as unknown as Record<string, number>)[muniKey] ?? 0
-      : ((d as unknown as Record<string, number>)[muniKey] ?? 0) * 1070,
+      ? monthlyProduction(submissions, { municipality: user.municipality, calendarYear: chartCalendarYear })[index].value
+      : submissions.filter((s) => s.type === "Income" && s.status === "Approved" && s.municipality === user.municipality && s.month === month && s.year === chartCalendarYear)
+        .reduce((sum, s) => sum + numeric(s.totalRevenue), 0),
   }));
 
   const approved = submissions.filter((s) => s.status === "Approved").length;
@@ -1830,7 +2090,7 @@ function CoordHomeTab({ user, submissions, prescriptions, onSubmit }: {
       {/* Chart card */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px]" style={{ ...montserrat(700), color: tk.heading }}>{user.municipality} Trend · 12 Months</p>
+          <div className="flex items-center gap-2"><p className="text-[12px]" style={{ ...montserrat(700), color: tk.heading }}>{user.municipality} Trend · 12 Months</p><PredictionBadge /></div>
           <div className="flex gap-1">
             {(["production", "revenue"] as const).map((ct) => (
               <button key={ct} onClick={() => setChartType(ct)}
@@ -2415,8 +2675,129 @@ function PrescriptionBlock({ sub, tk }: { sub: AppSubmission; tk: Tok }) {
   );
 }
 
-function CoordRecordsTab({ submissions, prescriptions, user, onResubmit }: {
+function ReportDetailModal({
+  sub,
+  tk,
+  onClose,
+  onUpdate,
+  onResubmit,
+  onDelete,
+  canEdit = false,
+  canModerate = false,
+}: {
+  sub: AppSubmission;
+  tk: Tok;
+  onClose: () => void;
+  onUpdate: (updates: Partial<AppSubmission>) => void;
+  onResubmit?: () => void;
+  onDelete?: () => void;
+  canEdit?: boolean;
+  canModerate?: boolean;
+}) {
+  const dark = useDark();
+  const [editing, setEditing] = useState(false);
+  const [notes, setNotes] = useState(sub.notes);
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [draft, setDraft] = useState({
+    volume: sub.volume ?? "", farmSize: sub.farmSize ?? "", saltBeds: sub.saltBeds ?? "", productionMethod: sub.productionMethod ?? "",
+    owner: sub.owner ?? "", farmManager: sub.farmManager ?? "", managerContact: sub.managerContact ?? "", newWorkerCount: sub.newWorkerCount ?? "",
+    amountSold: sub.amountSold ?? "", marketRate: sub.marketRate ?? "", totalRevenue: sub.totalRevenue ?? "", buyer: sub.buyer ?? "",
+  });
+
+  useEffect(() => {
+    setNotes(sub.notes);
+    setDraft({ volume: sub.volume ?? "", farmSize: sub.farmSize ?? "", saltBeds: sub.saltBeds ?? "", productionMethod: sub.productionMethod ?? "", owner: sub.owner ?? "", farmManager: sub.farmManager ?? "", managerContact: sub.managerContact ?? "", newWorkerCount: sub.newWorkerCount ?? "", amountSold: sub.amountSold ?? "", marketRate: sub.marketRate ?? "", totalRevenue: sub.totalRevenue ?? "", buyer: sub.buyer ?? "" });
+  }, [sub.id, sub.notes, sub.volume, sub.farmSize, sub.saltBeds, sub.productionMethod, sub.owner, sub.farmManager, sub.managerContact, sub.newWorkerCount, sub.amountSold, sub.marketRate, sub.totalRevenue, sub.buyer]);
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" style={{ background: "rgba(3, 18, 38, 0.62)" }} onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="w-full max-w-[680px] max-h-[90vh] overflow-y-auto rounded-[18px] border shadow-[0px_18px_60px_rgba(0,0,0,0.3)]" style={{ background: tk.card, borderColor: tk.cardBorder }}>
+        <div className="sticky top-0 z-10 px-5 py-4 flex items-start gap-3 border-b" style={{ background: tk.card, borderColor: tk.divider }}>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-[15px]" style={{ ...montserrat(800), color: tk.heading }}>{sub.id}</p>
+              <StatusPill status={sub.status} />
+            </div>
+            <p className="text-[11px] mt-1" style={{ ...montserrat(500), color: tk.muted }}>{sub.type} report · {sub.period} · {sub.municipality}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full border flex items-center justify-center text-[20px] cursor-pointer" style={{ borderColor: tk.cardBorder, color: tk.muted }} aria-label="Close report">×</button>
+        </div>
+
+        <div className="px-5 py-4 flex flex-col gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              ["Coordinator", sub.coordinatorName],
+              ["Filed", sub.date],
+              ["Report year", sub.year],
+              ["Record type", sub.type],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-[10px] border px-3 py-2" style={{ borderColor: tk.cardBorder, background: dark ? "#0f1929" : "#f8faff" }}>
+                <p className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>{label}</p>
+                <p className="text-[11px] mt-0.5 truncate" style={{ ...montserrat(700), color: tk.heading }}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-[12px] border p-3" style={{ borderColor: tk.cardBorder, background: dark ? "#0f1929" : "#f8faff" }}>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <p className="text-[11px]" style={{ ...montserrat(800), color: tk.heading }}>Report details</p>
+              {canEdit && !editingDetails && <button onClick={() => setEditingDetails(true)} className="text-[10px] text-[#008cff] cursor-pointer" style={montserrat(700)}>Edit report</button>}
+            </div>
+            {editingDetails ? (
+              <div className="flex flex-col gap-2">
+                {(sub.type === "Production" ? [["volume", "Volume (MT)", "number"]] : sub.type === "Producers" ? [["farmSize", "Farm size (ha)", "number"], ["saltBeds", "Salt beds", "number"], ["productionMethod", "Production method", "text"], ["owner", "Farm owner", "text"], ["farmManager", "Manager / operator", "text"], ["managerContact", "Contact number", "tel"], ["newWorkerCount", "New worker count", "number"]] : [["amountSold", "Amount sold (MT)", "number"], ["marketRate", "Market rate", "number"], ["totalRevenue", "Total revenue", "number"], ["buyer", "Buyer", "text"]]).map(([key, label, type]) => (
+                  <label key={key} className="flex flex-col gap-1"><span className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>{label}</span><input type={type} value={draft[key as keyof typeof draft]} onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} className="border rounded-[8px] px-2.5 py-2 text-[11px] outline-none" style={{ ...montserrat(500), background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText }} /></label>
+                ))}
+                <div className="flex gap-2 mt-1"><button onClick={() => setEditingDetails(false)} className="flex-1 py-2 rounded-[8px] border text-[11px] cursor-pointer" style={{ ...montserrat(600), borderColor: tk.cardBorder, color: tk.body }}>Cancel</button><button onClick={() => { onUpdate(draft); setEditingDetails(false); }} className="flex-1 py-2 rounded-[8px] bg-[#008cff] text-white text-[11px] cursor-pointer" style={montserrat(700)}>Save report</button></div>
+              </div>
+            ) : <FullReportView sub={sub} tk={tk} />}
+          </div>
+
+          {canModerate && (sub.status === "Pending" || sub.status === "Rejected") && (
+            <div className="rounded-[10px] border px-3 py-2.5" style={{ borderColor: sub.status === "Rejected" ? "#fecaca" : "#fde68a", background: sub.status === "Rejected" ? (dark ? "#210b0b" : "#fff5f5") : (dark ? "#211a05" : "#fffbeb") }}>
+              <p className="text-[10px]" style={{ ...montserrat(700), color: sub.status === "Rejected" ? "#dc2626" : "#b45309" }}>
+                {sub.status === "Rejected" ? "Returned to coordinator for correction" : "Returned to coordinator for review"}
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ ...montserrat(400), color: tk.body }}>The coordinator will see this status immediately in Records.</p>
+            </div>
+          )}
+
+          <div className="rounded-[12px] border p-3" style={{ borderColor: tk.cardBorder, background: dark ? "#0f1929" : "#f8faff" }}>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-[11px]" style={{ ...montserrat(800), color: tk.heading }}>Notes</p>
+              {!editing && <button onClick={() => setEditing(true)} className="text-[10px] text-[#008cff] cursor-pointer" style={montserrat(700)}>Edit notes</button>}
+            </div>
+            {editing ? (
+              <>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} className="w-full border rounded-[9px] px-3 py-2 text-[11px] outline-none resize-none" style={{ ...montserrat(400), background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText }} />
+                <div className="flex gap-2 mt-2">
+                  <button onClick={() => { setNotes(sub.notes); setEditing(false); }} className="flex-1 py-2 rounded-[8px] border text-[11px] cursor-pointer" style={{ ...montserrat(600), borderColor: tk.cardBorder, color: tk.body }}>Cancel</button>
+                  <button onClick={() => { onUpdate({ notes }); setEditing(false); }} className="flex-1 py-2 rounded-[8px] bg-[#008cff] text-white text-[11px] cursor-pointer" style={montserrat(700)}>Save notes</button>
+                </div>
+              </>
+            ) : <p className="text-[11px] leading-relaxed" style={{ ...montserrat(400), color: tk.body }}>{sub.notes || "No notes recorded."}</p>}
+          </div>
+
+          {sub.prescription && <PrescriptionBlock sub={sub} tk={tk} />}
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            {canModerate && sub.status === "Pending" && <>
+              <button onClick={() => onUpdate({ status: "Rejected" })} className="flex-1 min-w-[120px] py-2.5 rounded-[9px] border border-red-300 text-red-500 text-[11px] cursor-pointer" style={montserrat(700)}>Reject report</button>
+              <button onClick={() => onUpdate({ status: "Approved" })} className="flex-1 min-w-[120px] py-2.5 rounded-[9px] bg-[#008cff] text-white text-[11px] cursor-pointer" style={montserrat(700)}>Approve report</button>
+            </>}
+            {canModerate && sub.status !== "Pending" && <button onClick={() => onUpdate({ status: "Pending" })} className="flex-1 min-w-[120px] py-2.5 rounded-[9px] border text-[11px] cursor-pointer" style={{ ...montserrat(700), borderColor: tk.cardBorder, color: tk.body }}>Reset to pending</button>}
+            {onResubmit && <button onClick={onResubmit} className="flex-1 min-w-[120px] py-2.5 rounded-[9px] bg-[#008cff] text-white text-[11px] cursor-pointer" style={montserrat(700)}>Resubmit report</button>}
+            {onDelete && <button onClick={onDelete} className="w-full py-2.5 rounded-[9px] border border-red-300 text-red-500 text-[11px] cursor-pointer" style={montserrat(700)}>Delete report</button>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoordRecordsTab({ submissions, setSubmissions, prescriptions, user, onResubmit }: {
   submissions: AppSubmission[];
+  setSubmissions: React.Dispatch<React.SetStateAction<AppSubmission[]>>;
   prescriptions: AppPrescription[];
   user: AppUser;
   onResubmit: (type: "Production" | "Producers" | "Income") => void;
@@ -2426,6 +2807,7 @@ function CoordRecordsTab({ submissions, prescriptions, user, onResubmit }: {
   const [statusFilter, setStatusFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<AppSubmission | null>(null);
 
   const filtered = submissions.filter((r) => {
     if (statusFilter !== "All" && r.status !== statusFilter) return false;
@@ -2503,7 +2885,7 @@ function CoordRecordsTab({ submissions, prescriptions, user, onResubmit }: {
           const isExpanded = expandedId === row.id;
           return (
             <div key={row.id} className="rounded-[14px] border overflow-hidden" style={{ background: tk.card, borderColor: tk.cardBorder }}>
-              <button className="w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setExpandedId(isExpanded ? null : row.id)}>
+              <button className="w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setSelectedReport(row)}>
                 <div className="flex flex-col items-start gap-0.5">
                   <span className="text-[12px]" style={{ ...montserrat(800), color: tk.heading }}>{row.id}</span>
                   <span className="text-[10px]" style={{ ...montserrat(500), color: tk.muted }}>{row.type} · {row.period}</span>
@@ -2547,6 +2929,19 @@ function CoordRecordsTab({ submissions, prescriptions, user, onResubmit }: {
           );
         })}
       </div>
+      {selectedReport && (
+        <ReportDetailModal
+          sub={selectedReport}
+          tk={tk}
+          canEdit
+          onClose={() => setSelectedReport(null)}
+          onUpdate={(updates) => {
+            setSubmissions((previous) => previous.map((item) => item.id === selectedReport.id ? { ...item, ...updates } : item));
+            setSelectedReport((current) => current ? { ...current, ...updates } : current);
+          }}
+          onResubmit={() => { setSelectedReport(null); onResubmit(selectedReport.type); }}
+        />
+      )}
     </div>
   );
 }
@@ -2803,7 +3198,7 @@ function CoordinatorDashboard({ user, submissions, setSubmissions, prescriptions
         <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
           {tab === "home"     && <CoordHomeTab user={user} submissions={mySubmissions} prescriptions={prescriptions} onSubmit={(type) => { setSubmitType(type); setTab("submit"); }} />}
           {tab === "submit"   && <CoordSubmitTab user={user} setSubmissions={setSubmissions} initialType={submitType} />}
-          {tab === "records"  && <CoordRecordsTab submissions={mySubmissions} prescriptions={prescriptions} user={user} onResubmit={goToResubmit} />}
+          {tab === "records"  && <CoordRecordsTab submissions={mySubmissions} setSubmissions={setSubmissions} prescriptions={prescriptions} user={user} onResubmit={goToResubmit} />}
           {tab === "settings" && <CoordSettingsTab user={user} onSignOut={onSignOut} darkMode={darkMode} setDarkMode={setDarkMode} />}
         </div>
         <CoordBottomNav active={tab} onChange={setTab} />
@@ -3100,9 +3495,17 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
   const [effView, setEffView] = useState<"municipal" | "farm">("municipal");
 
   const mySubs = submissions.filter((s) => user.adminType === "center" || s.municipality === user.municipality);
-  const approved = mySubs.filter((s) => s.status === "Approved");
-  const pending  = mySubs.filter((s) => s.status === "Pending");
-  const rejected = mySubs.filter((s) => s.status === "Rejected");
+  const overviewYears = Array.from(new Set(mySubs.map((s) => s.year))).sort();
+  const overviewLocations = Array.from(new Set(mySubs.map((s) => s.municipality))).sort();
+  const [selectedYear, setSelectedYear] = useState("All years");
+  const [selectedLocation, setSelectedLocation] = useState("All locations");
+  const filteredSubs = mySubs.filter((s) =>
+    (selectedYear === "All years" || s.year === selectedYear) &&
+    (selectedLocation === "All locations" || s.municipality === selectedLocation)
+  );
+  const approved = filteredSubs.filter((s) => s.status === "Approved");
+  const pending  = filteredSubs.filter((s) => s.status === "Pending");
+  const rejected = filteredSubs.filter((s) => s.status === "Rejected");
 
   const totalProdMT = approved
     .filter((s) => s.type === "Production")
@@ -3112,30 +3515,30 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
     .filter((s) => s.type === "Income")
     .reduce((acc, s) => acc + parseFloat((s.amountSold ?? "0").replace(/[^0-9.]/g, "")) * parseFloat((s.marketRate ?? "1").replace(/[^0-9.]/g, "")), 0);
 
-  const provincialTrend = MUNI_TREND_DATA.map((d) => {
-    const sum = d.bolinao + d.lingayen + d.bani + d.alaminos + d.dasol + d.infanta + d.sanfabian;
-    return { month: d.month, Production: sum * 400, Demand: Math.round(sum * 385) };
-  });
+  const overviewCalendarYear = selectedYear === "All years" ? latestCalendarYear(filteredSubs) : selectedYear;
+  const provincialTrend = monthlyProduction(filteredSubs, { calendarYear: overviewCalendarYear }).map((d) => ({
+    month: d.month, Production: d.value, Demand: Math.round(d.value * 0.95),
+  }));
+  const forecastData = yieldForecast(filteredSubs, selectedLocation === "All locations" ? undefined : selectedLocation);
 
   // Report type distribution
   const typeDistData = [
-    { name: "Production", value: mySubs.filter((s) => s.type === "Production").length, color: "#008cff" },
-    { name: "Producers",  value: mySubs.filter((s) => s.type === "Producers").length,  color: "#22c55e" },
-    { name: "Income",     value: mySubs.filter((s) => s.type === "Income").length,      color: "#f59e0b" },
+    { name: "Production", value: filteredSubs.filter((s) => s.type === "Production").length, color: "#008cff" },
+    { name: "Producers",  value: filteredSubs.filter((s) => s.type === "Producers").length,  color: "#22c55e" },
+    { name: "Income",     value: filteredSubs.filter((s) => s.type === "Income").length,      color: "#f59e0b" },
   ];
 
   // Monthly submission activity
-  const MONTH_ORDER = ["Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun"];
-  const activityData = MONTH_ORDER.map((m) => ({
+  const activityData = CALENDAR_MONTHS.map((m) => ({
     month: m,
-    Submitted: mySubs.filter((s) => s.month === m).length,
-    Approved:  mySubs.filter((s) => s.month === m && s.status === "Approved").length,
+    Submitted: filteredSubs.filter((s) => s.month === m).length,
+    Approved:  filteredSubs.filter((s) => s.month === m && s.status === "Approved").length,
   }));
 
   // Approval rate per municipality (for center admins)
   const approvalRateData = Object.keys(MUNI_LABELS).map((key) => {
     const muniName = MUNI_LABELS[key];
-    const muniSubs = submissions.filter((s) => s.municipality === muniName);
+    const muniSubs = filteredSubs.filter((s) => s.municipality === muniName);
     return {
       name: muniName.slice(0, 6),
       Approved: muniSubs.filter((s) => s.status === "Approved").length,
@@ -3151,11 +3554,52 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 4);
   const effData = effView === "farm" && user.adminType === "municipal"
-    ? (FARM_EFFICIENCY[user.municipality] ?? MUNI_EFFICIENCY)
-    : MUNI_EFFICIENCY;
+    ? efficiencyData(filteredSubs, user.municipality)
+    : efficiencyData(filteredSubs);
+  const annualData = annualProduction(filteredSubs);
+  const methodData = methodTrend(filteredSubs, user.adminType === "center" ? undefined : undefined);
+  const averageRate = approved.filter((s) => s.type === "Income" && numeric(s.marketRate) > 0);
+  const marketRate = averageRate.length ? Math.round(averageRate.reduce((sum, s) => sum + numeric(s.marketRate), 0) / averageRate.length) : 0;
+  const amountSold = approved.filter((s) => s.type === "Income").reduce((sum, s) => sum + numeric(s.amountSold), 0);
 
   return (
     <div className="px-4 py-4 flex flex-col gap-4" style={{ background: tk.pageBg }}>
+      {/* Dashboard data controls */}
+      <div className="rounded-[16px] border p-3 flex flex-col gap-3" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <p className="text-[13px]" style={{ ...montserrat(700), color: tk.heading }}>Dashboard Data</p>
+            <p className="text-[10px]" style={{ ...montserrat(500), color: tk.muted }}>Filter every chart and summary below</p>
+          </div>
+          {(selectedYear !== "All years" || selectedLocation !== "All locations") && (
+            <button
+              onClick={() => { setSelectedYear("All years"); setSelectedLocation("All locations"); }}
+              className="text-[10px] text-[#008cff] cursor-pointer"
+              style={montserrat(700)}
+            >Reset filters</button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px]" style={{ ...montserrat(700), color: tk.muted }}>Calendar year</span>
+            <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="border rounded-[10px] px-3 py-2 text-[11px] outline-none focus:border-[#008cff] cursor-pointer" style={{ ...montserrat(600), background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText }}>
+              <option>All years</option>
+              {overviewYears.map((year) => <option key={year}>{year}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px]" style={{ ...montserrat(700), color: tk.muted }}>Location</span>
+            <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="border rounded-[10px] px-3 py-2 text-[11px] outline-none focus:border-[#008cff] cursor-pointer" style={{ ...montserrat(600), background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText }}>
+              <option>All locations</option>
+              {overviewLocations.map((location) => <option key={location}>{location}</option>)}
+            </select>
+          </label>
+        </div>
+        <p className="text-[10px]" style={{ ...montserrat(500), color: tk.muted }}>
+          Showing {filteredSubs.length.toLocaleString()} reports · {selectedYear === "All years" ? "all calendar years" : selectedYear} · {selectedLocation === "All locations" ? "all locations" : selectedLocation}
+        </p>
+      </div>
+
       {/* Report Validations card */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
         <p className="text-[14px] mb-3 text-center" style={{ ...montserrat(700), color: tk.heading }}>Report Validations</p>
@@ -3177,14 +3621,14 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-[16px] border p-3 flex flex-col gap-1" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
           <p className="text-[20px] leading-none" style={{ ...montserrat(900), color: tk.heading }}>
-            {totalProdMT > 0 ? `${totalProdMT.toFixed(0)} MT` : "2,104 MT"}
+            {totalProdMT > 0 ? `${totalProdMT.toFixed(0)} MT` : "— MT"}
           </p>
           <p className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>Provincial Production</p>
           <p className="text-[10px]" style={{ ...montserrat(700), color: tk.heading }}>Pangasinan, Philippines</p>
           <div className="mt-1 pt-2 border-t flex flex-col gap-0.5" style={{ borderColor: tk.divider }}>
             <div className="flex justify-between">
               <p className="text-[9px]" style={{ ...montserrat(500), color: tk.muted }}>Avg. Rate:</p>
-              <p className="text-[9px]" style={{ ...montserrat(700), color: tk.body }}>300/muni</p>
+              <p className="text-[9px]" style={{ ...montserrat(700), color: tk.body }}>{approved.length ? Math.round(totalProdMT / Math.max(1, new Set(approved.map((s) => s.municipality)).size)) : 0}/muni</p>
             </div>
             <div className="flex justify-between">
               <p className="text-[9px]" style={{ ...montserrat(500), color: tk.muted }}>Predicted:</p>
@@ -3194,18 +3638,18 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
         </div>
         <div className="rounded-[16px] border p-3 flex flex-col gap-1" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
           <p className="text-[18px] leading-none" style={{ ...montserrat(900), color: tk.heading }}>
-            {totalRevenue > 0 ? `₱${totalRevenue.toLocaleString()}` : "₱2,033,000"}
+            {totalRevenue > 0 ? `₱${totalRevenue.toLocaleString()}` : "₱0"}
           </p>
           <p className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>Provincial Revenue</p>
           <p className="text-[10px]" style={{ ...montserrat(700), color: tk.heading }}>Pangasinan, Philippines</p>
           <div className="mt-1 pt-2 border-t flex flex-col gap-0.5" style={{ borderColor: tk.divider }}>
             <div className="flex justify-between">
               <p className="text-[9px]" style={{ ...montserrat(500), color: tk.muted }}>Market Rate:</p>
-              <p className="text-[9px]" style={{ ...montserrat(700), color: tk.body }}>₱1,070/ton</p>
+              <p className="text-[9px]" style={{ ...montserrat(700), color: tk.body }}>₱{marketRate.toLocaleString()}/ton</p>
             </div>
             <div className="flex justify-between">
               <p className="text-[9px]" style={{ ...montserrat(500), color: tk.muted }}>Amount Sold:</p>
-              <p className="text-[9px]" style={{ ...montserrat(700), color: tk.body }}>1,900 MT</p>
+              <p className="text-[9px]" style={{ ...montserrat(700), color: tk.body }}>{amountSold.toLocaleString()} MT</p>
             </div>
           </div>
         </div>
@@ -3228,7 +3672,7 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
 
       {/* Provincial Production Trend */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
-        <p className="text-[13px] mb-3" style={{ ...montserrat(700), color: tk.heading }}>Provincial Production Trend</p>
+        <div className="flex items-center gap-2 mb-3"><p className="text-[13px]" style={{ ...montserrat(700), color: tk.heading }}>Production Trend · {selectedLocation === "All locations" ? "All locations" : selectedLocation} · {overviewCalendarYear || "No year"}</p><PredictionBadge /></div>
         <ResponsiveContainer width="100%" height={180}>
           <LineChart data={provincialTrend} margin={{ top: 4, right: 8, bottom: 0, left: -10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
@@ -3242,13 +3686,34 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
         </ResponsiveContainer>
       </div>
 
+      <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <div>
+            <div className="flex items-center gap-2"><p className="text-[13px]" style={{ ...montserrat(700), color: tk.heading }}>Yield Forecast</p><PredictionBadge /></div>
+            <p className="text-[10px] mt-0.5" style={{ ...montserrat(500), color: tk.muted }}>Baseline forecast for the next six months · MT</p>
+          </div>
+          <span className="text-[9px] px-2 py-1 rounded-full" style={{ ...montserrat(700), color: "#16a34a", background: dark ? "#052010" : "#f0fdf4" }}>Trend + seasonal average</span>
+        </div>
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={forecastData} margin={{ top: 8, right: 8, bottom: 0, left: -10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 8, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+            <YAxis tick={{ fontSize: 9, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
+            <Tooltip contentStyle={{ fontSize: 10, borderRadius: 10, border: `1px solid ${tk.cardBorder}`, background: tk.card, color: tk.inputText }} formatter={(value: unknown, name: string) => [`${Number(value).toLocaleString()} MT`, name === "forecast" ? "Forecast" : "Actual"]} />
+            <Legend wrapperStyle={{ fontSize: 10, fontFamily: "Montserrat,sans-serif" }} />
+            <Line type="monotone" dataKey="actual" name="Actual" stroke="#008cff" strokeWidth={2} dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#22c55e" strokeWidth={2} strokeDasharray="5 3" dot={{ r: 2 }} connectNulls={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Efficiency chart with Municipal/Farm toggle */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
         <div className="flex items-start justify-between mb-1 gap-2">
           <div>
-            <p className="text-[13px]" style={{ ...montserrat(700), color: tk.heading }}>
+            <div className="flex items-center gap-2"><p className="text-[13px]" style={{ ...montserrat(700), color: tk.heading }}>
               {effView === "farm" ? "Farm Production Efficiency" : "Municipal Production Efficiency"}
-            </p>
+            </p><PredictionBadge /></div>
             <p className="text-[10px] mt-0.5" style={{ ...montserrat(500), color: tk.muted }}>kg/sq.m</p>
           </div>
           {user.adminType === "municipal" && (
@@ -3268,7 +3733,7 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
             <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 8, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false}
               tickFormatter={(v: string) => v.slice(0, 7)} />
-            <YAxis tick={{ fontSize: 9, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} domain={[0, 8]} />
+            <YAxis tick={{ fontSize: 9, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} domain={["auto", "auto"]} />
             <Tooltip contentStyle={{ fontSize: 10, borderRadius: 10, border: `1px solid ${tk.cardBorder}`, background: tk.card, color: tk.inputText }}
               formatter={(v: unknown) => [`${Number(v)} kg/sq.m`, "Efficiency"]} />
             <Bar dataKey="eff" fill="#008cff" radius={[4, 4, 0, 0]} barSize={28}
@@ -3281,7 +3746,7 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
       <div className="grid grid-cols-2 gap-3">
         {/* Report Type Distribution */}
         <div className="rounded-[16px] border p-3" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
-          <p className="text-[12px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Report Types</p>
+          <div className="flex items-center gap-2"><p className="text-[12px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Report Types</p><PredictionBadge /></div>
           <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>Distribution</p>
           <ResponsiveContainer width="100%" height={100}>
             <PieChart>
@@ -3306,7 +3771,7 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
           <p className="text-[12px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Approval Rate</p>
           <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>Out of total submitted</p>
           {(() => {
-            const total = mySubs.length;
+            const total = filteredSubs.length;
             const appRate = total > 0 ? Math.round(approved.length / total * 100) : 0;
             const rejRate = total > 0 ? Math.round(rejected.length / total * 100) : 0;
             const pendRate = total > 0 ? Math.round(pending.length / total * 100) : 0;
@@ -3335,8 +3800,8 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
 
       {/* Monthly Submission Activity */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
-        <p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Submission Activity</p>
-        <p className="text-[10px] mb-3" style={{ ...montserrat(500), color: tk.muted }}>Reports filed per month</p>
+        <div className="flex items-center gap-2"><p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Submission Activity</p><PredictionBadge /></div>
+        <p className="text-[10px] mb-3" style={{ ...montserrat(500), color: tk.muted }}>Reports filed per month · {selectedYear === "All years" ? "all calendar years" : selectedYear}</p>
         <ResponsiveContainer width="100%" height={150}>
           <BarChart data={activityData} margin={{ top: 4, right: 8, bottom: 0, left: -22 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
@@ -3353,7 +3818,7 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
       {/* Per-municipality approval breakdown — center admins only */}
       {user.adminType === "center" && (
         <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
-          <p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Municipal Report Status</p>
+          <div className="flex items-center gap-2"><p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Municipal Report Status</p><PredictionBadge /></div>
           <p className="text-[10px] mb-3" style={{ ...montserrat(500), color: tk.muted }}>Approved / Pending / Rejected per municipality</p>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={approvalRateData} margin={{ top: 4, right: 8, bottom: 0, left: -22 }}>
@@ -3397,10 +3862,10 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
 
       {/* Year-over-Year Production by Municipality */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
-        <p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Year-over-Year Production</p>
+        <div className="flex items-center gap-2"><p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Year-over-Year Production</p><PredictionBadge /></div>
         <p className="text-[10px] mb-3" style={{ ...montserrat(500), color: tk.muted }}>Total MT per municipality, 5 fiscal years</p>
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={ANNUAL_PRODUCTION_5Y} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
+          <BarChart data={annualData} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
             <XAxis dataKey="year" tick={{ fontSize: 8, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 8, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
@@ -3419,12 +3884,12 @@ function AdminOverviewTab({ user, submissions, setSubmissions, prescriptions, on
 
       {/* Provincial Method Trend */}
       <div className="rounded-[16px] border p-4" style={{ background: tk.card, borderColor: tk.cardBorder, boxShadow: tk.cardShadow }}>
-        <p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Production Method Trend</p>
+        <div className="flex items-center gap-2"><p className="text-[13px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Production Method Trend</p><PredictionBadge /></div>
         <p className="text-[10px] mb-3" style={{ ...montserrat(500), color: tk.muted }}>
           {user.adminType === "center" ? "Provincial method mix evolution (% of output)" : `${user.municipality} method mix evolution`}
         </p>
         <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={METHOD_TREND_PROVINCIAL} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+          <BarChart data={methodData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
             <XAxis dataKey="year" tick={{ fontSize: 8, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 8, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} domain={[0, 100]} />
@@ -3450,9 +3915,12 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
   const [compMode, setCompMode] = useState<"municipality" | "farm">("municipality");
   const [farm1, setFarm1] = useState("");
   const [farm2, setFarm2] = useState("");
-  const [yearFilter, setYearFilter] = useState("2024-25");
-
   const mySubs = submissions.filter((s) => user.adminType === "center" || s.municipality === user.municipality);
+  const comparisonFilter = useGraphDateFilter(mySubs);
+  const methodFilter = useGraphDateFilter(mySubs);
+  const annualFilter = useGraphDateFilter(mySubs);
+  const yoyFilter = useGraphDateFilter(mySubs);
+  const evolutionFilter = useGraphDateFilter(mySubs);
   const filteredList = mySubs.filter((s) => {
     if (!search) return true;
     return s.id.toLowerCase().includes(search.toLowerCase()) || s.coordinatorName.toLowerCase().includes(search.toLowerCase());
@@ -3460,35 +3928,47 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
 
   const munis = ["All", "Bolinao", "Lingayen", "Bani", "Alaminos", "Dasol", "Infanta", "San Fabian"];
 
-  const comparisonData = MUNI_TREND_DATA.map((d) => {
-    const key1 = MUNI_KEY[loc1];
-    const key2 = MUNI_KEY[loc2];
-    const v1 = loc1 !== "All" && key1 ? ((d as unknown as Record<string, number>)[key1] ?? 0) * 400 : 0;
-    const v2 = loc2 !== "All" && key2 ? ((d as unknown as Record<string, number>)[key2] ?? 0) * 400 : 0;
-    return { month: d.month, [loc1 !== "All" ? loc1 : "Loc1"]: v1, [loc2 !== "All" ? loc2 : "Loc2"]: v2 };
+  const comparisonData = CALENDAR_MONTHS.map((month, index) => {
+    const row: Record<string, string | number> = { month };
+    if (loc1 !== "All") row[loc1] = monthlyProduction(comparisonFilter.filtered, { municipality: loc1 })[index].value;
+    if (loc2 !== "All") row[loc2] = monthlyProduction(comparisonFilter.filtered, { municipality: loc2 })[index].value;
+    return row;
   });
 
-  const MONTH_LABELS = ["Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun"];
   const f1name = ALL_USERS.find(u => u.id === farm1)?.name ?? "Farm 1";
   const f2name = ALL_USERS.find(u => u.id === farm2)?.name ?? "Farm 2";
-  const farmComparisonData = MONTH_LABELS.map((month, i) => {
+  const farmComparisonData = CALENDAR_MONTHS.map((month, i) => {
     return {
       month,
-      [f1name]: farm1 ? (FARM_MONTHLY_DATA[farm1]?.[i] ?? 0) * 40 : 0,
-      [f2name]: farm2 ? (FARM_MONTHLY_DATA[farm2]?.[i] ?? 0) * 40 : 0,
+      [f1name]: farm1 ? monthlyProduction(comparisonFilter.filtered, { coordinatorId: farm1 })[i]?.value ?? 0 : 0,
+      [f2name]: farm2 ? monthlyProduction(comparisonFilter.filtered, { coordinatorId: farm2 })[i]?.value ?? 0 : 0,
     };
   });
 
-  const methodSubs = mySubs.filter((s) => s.productionMethod);
+  const methodSubs = methodFilter.filtered.filter((s) => s.productionMethod);
   const solar = methodSubs.filter((s) => /solar|sun/i.test(s.productionMethod ?? "")).length;
   const cooked = methodSubs.filter((s) => /cook|boil/i.test(s.productionMethod ?? "")).length;
   const hybrid = methodSubs.filter((s) => /hybrid/i.test(s.productionMethod ?? "")).length;
   const methodData = [
-    { name: "Solar/Sun",     value: solar  || 7,  color: "#f59e0b" },
-    { name: "Cooked/Boiled", value: cooked || 3,  color: "#008cff" },
-    { name: "Hybrid",        value: hybrid || 4,  color: "#22c55e" },
+    { name: "Solar/Sun",     value: solar,  color: "#f59e0b" },
+    { name: "Cooked/Boiled", value: cooked, color: "#008cff" },
+    { name: "Hybrid",        value: hybrid, color: "#22c55e" },
   ];
   const methodTotal = methodData.reduce((a, b) => a + b.value, 0);
+  const analyticsAnnualData = annualProduction(annualFilter.filtered);
+  const yoyAnnualData = annualProduction(yoyFilter.filtered);
+  const farmAnnualData = availableFiscalYears(yoyFilter.filtered).map((year) => ({
+    year,
+    value: farm1 ? yoyFilter.filtered.filter((s) => s.type === "Production" && s.status === "Approved" && s.coordinatorId === farm1 && fiscalYear(s.year, s.month) === year)
+      .reduce((sum, s) => sum + numeric(s.volume), 0) : 0,
+  }));
+  const analyticsMethodData = methodTrend(evolutionFilter.filtered, compMode === "farm" ? farm1 || undefined : undefined);
+  const selectedFarmReports = selectedId ? mySubs.filter((s) => s.id === selectedId) : [];
+  const annualFocusYear = latestFiscalYear(annualFilter.filtered);
+  const selectedFarmArea = selectedFarmReports.reduce((sum, s) => sum + numeric(s.farmSize), 0);
+  const selectedFarmBeds = selectedFarmReports.reduce((sum, s) => sum + numeric(s.saltBeds), 0);
+  const selectedFarmProduction = selectedFarmReports.reduce((sum, s) => sum + numeric(s.volume), 0);
+  const selectedFarmUtilization = selectedFarmArea > 0 ? Math.min(100, Math.round(selectedFarmProduction / selectedFarmArea)) : 0;
 
   const selected = mySubs.find((s) => s.id === selectedId);
   const dInput: React.CSSProperties = { background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText };
@@ -3544,29 +4024,6 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
 
         {/* Right panel: Comparison */}
         <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
-          {/* Date range */}
-          <div className="flex items-center gap-1.5">
-            <p className="text-[10px] shrink-0" style={{ ...montserrat(600), color: tk.muted }}>From:</p>
-            <select className="flex-1 border rounded-[10px] px-2 py-1.5 text-[10px] outline-none" style={{ ...montserrat(500), ...dInput }}>
-              <option>Set Date</option>
-            </select>
-            <span style={{ color: tk.muted }}>—</span>
-            <p className="text-[10px] shrink-0" style={{ ...montserrat(600), color: tk.muted }}>To:</p>
-            <select className="flex-1 border rounded-[10px] px-2 py-1.5 text-[10px] outline-none" style={{ ...montserrat(500), ...dInput }}>
-              <option>Set Date</option>
-            </select>
-          </div>
-          {/* Year filter */}
-          <div className="flex items-center gap-1.5">
-            <p className="text-[10px] shrink-0" style={{ ...montserrat(600), color: tk.muted }}>Year:</p>
-            <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}
-              className="flex-1 border rounded-[10px] px-2 py-1.5 text-[10px] outline-none focus:border-[#008cff]"
-              style={{ ...montserrat(500), ...dInput }}>
-              {["2020-21","2021-22","2022-23","2023-24","2024-25"].map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </div>
           {/* Comparison mode toggle */}
           <div className="flex gap-1 p-0.5 rounded-full" style={{ background: dark ? "#0f1929" : "#f0f4f8" }}>
             {(["municipality", "farm"] as const).map((mode) => (
@@ -3622,7 +4079,10 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
           )}
           {/* Comparison chart */}
           <div className="rounded-[12px] border p-3" style={{ background: tk.card, borderColor: tk.cardBorder }}>
-            <p className="text-[11px] mb-2 text-center" style={{ ...montserrat(700), color: tk.heading }}>Comparison</p>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2"><p className="text-[11px]" style={{ ...montserrat(700), color: tk.heading }}>Comparison</p><PredictionBadge /></div>
+              <GraphDateButton filter={comparisonFilter} tk={tk} />
+            </div>
             <ResponsiveContainer width="100%" height={155}>
               <LineChart data={compMode === "municipality" ? comparisonData : farmComparisonData} margin={{ top: 4, right: 4, bottom: 0, left: -22 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
@@ -3646,7 +4106,10 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
           {/* Method + Stats row */}
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-[12px] border p-3" style={{ background: tk.card, borderColor: tk.cardBorder }}>
-              <p className="text-[11px] mb-0.5" style={{ ...montserrat(700), color: tk.heading }}>Method Distribution</p>
+              <div className="flex items-center justify-between gap-1 mb-0.5">
+                <div className="flex items-center gap-1"><p className="text-[11px]" style={{ ...montserrat(700), color: tk.heading }}>Method Distribution</p><PredictionBadge /></div>
+                <GraphDateButton filter={methodFilter} tk={tk} />
+              </div>
               <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>Solar / Cooked / Hybrid</p>
               <ResponsiveContainer width="100%" height={90}>
                 <PieChart>
@@ -3672,38 +4135,41 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
               {selected && selected.farmSize ? (
                 <>
                   <p className="text-[10px]" style={{ ...montserrat(600), color: tk.body }}>
-                    Hectares: <span style={{ color: tk.heading }}>{selected.farmSize}</span>
+                      Hectares: <span style={{ color: tk.heading }}>{selectedFarmArea.toFixed(1)}</span>
                   </p>
                   {selected.saltBeds && (
                     <p className="text-[10px]" style={{ ...montserrat(600), color: tk.body }}>
-                      Beds: <span style={{ color: tk.heading }}>{selected.saltBeds}</span>
+                      Beds: <span style={{ color: tk.heading }}>{selectedFarmBeds}</span>
                     </p>
                   )}
                 </>
               ) : (
                 <>
-                  <p className="text-[10px]" style={{ ...montserrat(600), color: tk.body }}>Hectares: <span style={{ color: tk.heading }}>10</span></p>
-                  <p className="text-[10px]" style={{ ...montserrat(600), color: tk.body }}>Beds used: <span style={{ color: tk.heading }}>45</span></p>
+                  <p className="text-[10px]" style={{ ...montserrat(600), color: tk.body }}>Hectares: <span style={{ color: tk.heading }}>—</span></p>
+                  <p className="text-[10px]" style={{ ...montserrat(600), color: tk.body }}>Beds used: <span style={{ color: tk.heading }}>—</span></p>
                 </>
               )}
               <div className="mt-1">
                 <p className="text-[9px]" style={{ ...montserrat(600), color: tk.muted }}>Utilization</p>
                 <div className="mt-1 w-full h-2 rounded-full overflow-hidden" style={{ background: dark ? "#1e2d4a" : "#e8f0fb" }}>
-                  <div className="h-full rounded-full" style={{ width: "67.5%", background: "#22c55e" }} />
+                  <div className="h-full rounded-full" style={{ width: `${selectedFarmUtilization}%`, background: "#22c55e" }} />
                 </div>
-                <p className="text-[9px] mt-0.5" style={{ ...montserrat(700), color: "#22c55e" }}>67.5%</p>
+                <p className="text-[9px] mt-0.5" style={{ ...montserrat(700), color: "#22c55e" }}>{selectedFarmUtilization}%</p>
               </div>
             </div>
           </div>
           {/* Production volume by municipality (right panel extra chart) */}
           <div className="rounded-[12px] border p-3" style={{ background: tk.card, borderColor: tk.cardBorder }}>
-            <p className="text-[11px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Annual Production Volume</p>
-            <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>{yearFilter} fiscal year</p>
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <div className="flex items-center gap-1"><p className="text-[11px]" style={{ ...montserrat(700), color: tk.heading }}>Annual Production Volume</p><PredictionBadge /></div>
+              <GraphDateButton filter={annualFilter} tk={tk} />
+            </div>
+            <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>{annualFocusYear || "Selected range"} fiscal year</p>
             <ResponsiveContainer width="100%" height={130}>
               <BarChart
                 data={Object.keys(MUNI_LABELS).map((k) => ({
                   name: MUNI_LABELS[k].slice(0, 6),
-                  total: (ANNUAL_PRODUCTION_5Y.find(y => y.year === yearFilter) as Record<string, number> | undefined)?.[k] ?? 0,
+                  total: (analyticsAnnualData.find((y) => y.year === annualFocusYear) as Record<string, number> | undefined)?.[k] ?? 0,
                   color: MUNI_COLORS[k],
                 }))}
                 margin={{ top: 4, right: 4, bottom: 0, left: -22 }}>
@@ -3721,14 +4187,17 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
 
           {/* Year-over-Year comparison chart */}
           <div className="rounded-[12px] border p-3" style={{ background: tk.card, borderColor: tk.cardBorder }}>
-            <p className="text-[11px] mb-1" style={{ ...montserrat(700), color: tk.heading }}>Year-over-Year Production</p>
+            <div className="flex items-center justify-between gap-1 mb-1">
+              <div className="flex items-center gap-1"><p className="text-[11px]" style={{ ...montserrat(700), color: tk.heading }}>Year-over-Year Production</p><PredictionBadge /></div>
+              <GraphDateButton filter={yoyFilter} tk={tk} />
+            </div>
             <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>
               {compMode === "farm" && farm1
                 ? `${ALL_USERS.find(u => u.id === farm1)?.name ?? "Farm"} — 5-year monthly trend`
                 : "Provincial total — 5 fiscal years"}
             </p>
             <ResponsiveContainer width="100%" height={130}>
-              <BarChart data={ANNUAL_PRODUCTION_5Y} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
+              <BarChart data={compMode === "farm" && farm1 ? farmAnnualData : yoyAnnualData} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
                 <XAxis dataKey="year" tick={{ fontSize: 7, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 7, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
@@ -3736,7 +4205,7 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
                 {compMode === "municipality" && loc1 !== "All" ? (
                   <Bar dataKey={MUNI_KEY[loc1] ?? "bolinao"} fill="#008cff" radius={[3, 3, 0, 0]} barSize={20} />
                 ) : compMode === "farm" && farm1 ? (
-                  <Bar dataKey="bolinao" fill="#008cff" radius={[3, 3, 0, 0]} barSize={20} />
+                  <Bar dataKey="value" fill="#008cff" radius={[3, 3, 0, 0]} barSize={20} />
                 ) : (
                   Object.keys(MUNI_COLORS).map((k) => (
                     <Bar key={k} dataKey={k} stackId="a" fill={MUNI_COLORS[k]} barSize={20} />
@@ -3748,7 +4217,10 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
 
           {/* Method trend for selected coordinator / municipality */}
           <div className="rounded-[12px] border p-3" style={{ background: tk.card, borderColor: tk.cardBorder }}>
-            <p className="text-[11px] mb-0.5" style={{ ...montserrat(700), color: tk.heading }}>Production Method Evolution</p>
+            <div className="flex items-center justify-between gap-1 mb-0.5">
+              <div className="flex items-center gap-1"><p className="text-[11px]" style={{ ...montserrat(700), color: tk.heading }}>Production Method Evolution</p><PredictionBadge /></div>
+              <GraphDateButton filter={evolutionFilter} tk={tk} />
+            </div>
             <p className="text-[9px] mb-2" style={{ ...montserrat(500), color: tk.muted }}>
               {compMode === "farm" && farm1
                 ? `${ALL_USERS.find(u => u.id === farm1)?.name ?? "Farm"} — method mix by year`
@@ -3756,9 +4228,7 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
             </p>
             <ResponsiveContainer width="100%" height={130}>
               <BarChart
-                data={compMode === "farm" && farm1 && COORD_METHOD_TREND[farm1]
-                  ? COORD_METHOD_TREND[farm1]
-                  : METHOD_TREND_PROVINCIAL}
+                data={analyticsMethodData}
                 margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={tk.divider} vertical={false} />
                 <XAxis dataKey="year" tick={{ fontSize: 7, fill: tk.muted, fontFamily: "Montserrat,sans-serif" }} axisLine={false} tickLine={false} />
@@ -3788,11 +4258,12 @@ function AdminAnalyticsTab({ user, submissions }: { user: AppUser; submissions: 
   );
 }
 
-function AdminStorageTab({ user, submissions }: { user: AppUser; submissions: AppSubmission[] }) {
+function AdminStorageTab({ user, submissions, setSubmissions }: { user: AppUser; submissions: AppSubmission[]; setSubmissions: React.Dispatch<React.SetStateAction<AppSubmission[]>> }) {
   const dark = useDark(); const tk = tok(dark);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("Production");
   const [statusFilter, setStatusFilter] = useState("All Status");
+  const [selectedReport, setSelectedReport] = useState<AppSubmission | null>(null);
 
   const mySubs = submissions.filter((s) => user.adminType === "center" || s.municipality === user.municipality);
   const filtered = mySubs.filter((s) => {
@@ -3843,7 +4314,7 @@ function AdminStorageTab({ user, submissions }: { user: AppUser; submissions: Ap
           <p className="text-center py-8 text-[13px]" style={{ ...montserrat(500), color: tk.muted }}>No reports match filters</p>
         )}
         {filtered.map((s, i) => (
-          <div key={s.id} className="grid px-4 py-4 border-b last:border-0 items-center"
+          <button key={s.id} onClick={() => setSelectedReport(s)} className="w-full grid px-4 py-4 border-b last:border-0 items-center text-left cursor-pointer hover:opacity-85 transition-opacity"
             style={{ gridTemplateColumns: "2fr 1.2fr 1.2fr 1.4fr 1fr", borderColor: tk.divider,
               background: i % 2 === 1 ? tk.tableRow2 : "transparent" }}>
             <p className="text-[12px]" style={{ ...montserrat(600), color: "#008cff" }}>{s.id}</p>
@@ -3860,9 +4331,28 @@ function AdminStorageTab({ user, submissions }: { user: AppUser; submissions: Ap
               </span>
             </div>
             <p className="text-[12px] text-center" style={{ ...montserrat(500), color: tk.muted }}>{s.date}</p>
-          </div>
+          </button>
         ))}
       </div>
+      {selectedReport && (
+        <ReportDetailModal
+          sub={selectedReport}
+          tk={tk}
+          canEdit
+          canModerate
+          onClose={() => setSelectedReport(null)}
+          onDelete={() => {
+            if (window.confirm(`Delete report ${selectedReport.id}? This cannot be undone.`)) {
+              setSubmissions((previous) => previous.filter((item) => item.id !== selectedReport.id));
+              setSelectedReport(null);
+            }
+          }}
+          onUpdate={(updates) => {
+            setSubmissions((previous) => previous.map((item) => item.id === selectedReport.id ? { ...item, ...updates } : item));
+            setSelectedReport((current) => current ? { ...current, ...updates } : current);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -3888,6 +4378,7 @@ function AdminManagementTab({ user, submissions, setSubmissions, prescriptions, 
   const [adminStatuses, setAdminStatuses] = useState<Record<string, boolean>>({});
   const myCoords = ALL_USERS.filter((u) => u.role === "coordinator" && (user.adminType === "center" || u.municipality === user.municipality));
   const [coordStatuses, setCoordStatuses] = useState<Record<string, boolean>>({});
+  const recommendationTarget = ALL_USERS.find((candidate) => candidate.id === prescTargetId);
 
   const dInput: React.CSSProperties = { background: tk.inputBg, borderColor: tk.inputBorder, color: tk.inputText };
 
@@ -4084,6 +4575,18 @@ function AdminManagementTab({ user, submissions, setSubmissions, prescriptions, 
                 }
               </select>
             </div>
+            <div className="rounded-[10px] border px-3 py-2.5 flex items-center justify-between gap-3" style={{ background: dark ? "#0f1929" : "#f8faff", borderColor: tk.cardBorder }}>
+              <div>
+                <p className="text-[10px]" style={{ ...montserrat(700), color: tk.heading }}>Data-based recommendation</p>
+                <p className="text-[9px] mt-0.5" style={{ ...montserrat(400), color: tk.muted }}>Uses approved yield trend, method mix, pending reports, and a six-month baseline forecast.</p>
+              </div>
+              <button
+                disabled={!recommendationTarget}
+                onClick={() => recommendationTarget && setPrescText(generatePrescription(submissions, recommendationTarget.municipality))}
+                className="shrink-0 px-2.5 py-1.5 rounded-[8px] text-[10px] text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ ...montserrat(700), background: "#008cff" }}
+              >Generate</button>
+            </div>
             {/* Prescription text */}
             <div className="flex flex-col gap-1">
               <p className="text-[10px]" style={{ ...montserrat(600), color: tk.muted }}>Prescription / Note</p>
@@ -4163,7 +4666,7 @@ function AdminDashboard({ user, submissions, setSubmissions, prescriptions, setP
         <div className={`flex-1 ${tab === "analytics" ? "overflow-hidden" : "overflow-y-auto"}`} style={{ minHeight: 0 }}>
           {tab === "overview"    && <AdminOverviewTab user={user} submissions={submissions} setSubmissions={setSubmissions} prescriptions={prescriptions} onNavigate={setTab} />}
           {tab === "analytics"   && <AdminAnalyticsTab user={user} submissions={submissions} />}
-          {tab === "storage"     && <AdminStorageTab user={user} submissions={submissions} />}
+          {tab === "storage"     && <AdminStorageTab user={user} submissions={submissions} setSubmissions={setSubmissions} />}
           {tab === "management"  && <AdminManagementTab user={user} submissions={submissions} setSubmissions={setSubmissions} prescriptions={prescriptions} setPrescriptions={setPrescriptions} onSignOut={onSignOut} darkMode={darkMode} setDarkMode={setDarkMode} />}
         </div>
         <AdminBottomNav active={tab} onChange={setTab} />
@@ -4176,8 +4679,15 @@ function AdminDashboard({ user, submissions, setSubmissions, prescriptions, setP
 export default function App() {
   const [page, setPage] = useState<"landing" | "signin" | "help" | "coordinator" | "admin">("landing");
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
-  const [submissions, setSubmissions] = useState<AppSubmission[]>(INITIAL_SUBMISSIONS);
+  const [submissions, setSubmissions] = useState<AppSubmission[]>([]);
   const [prescriptions, setPrescriptions] = useState<AppPrescription[]>(INITIAL_PRESCRIPTIONS);
+
+  useEffect(() => {
+    fetch("/data/submissions.csv")
+      .then((response) => response.ok ? response.text() : Promise.reject(new Error("Unable to load submissions")))
+      .then((text) => setSubmissions(parseCsv(text).map(csvSubmission)))
+      .catch(() => undefined);
+  }, []);
 
   const handleLogin = (user: AppUser) => {
     setCurrentUser(user);
@@ -4192,5 +4702,5 @@ export default function App() {
   if (page === "help")        return <HelpPage onBack={() => setPage("signin")} />;
   if (page === "coordinator" && currentUser) return <CoordinatorDashboard user={currentUser} submissions={submissions} setSubmissions={setSubmissions} prescriptions={prescriptions} onSignOut={handleSignOut} />;
   if (page === "admin"       && currentUser) return <AdminDashboard user={currentUser} submissions={submissions} setSubmissions={setSubmissions} prescriptions={prescriptions} setPrescriptions={setPrescriptions} onSignOut={handleSignOut} />;
-  return <LandingPage onSignIn={() => setPage("signin")} />;
+  return <LandingPage submissions={submissions} onSignIn={() => setPage("signin")} />;
 }
